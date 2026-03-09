@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="初々しさと自然体の成人素人・新人作品を厳選。見やすく選べる特化まとめサイト。">
+    <meta name="keywords" content="成人,素人,新人,初撮り,FANZA,アフィリエイト">
+    <title>ShinStar Selection（シンスター・セレクション） - 成人素人・新人作品厳選サイト</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- 18歳未満利用禁止モーダル -->
+    <div id="age-verification-modal" class="age-modal">
+        <div class="age-modal-content">
+            <div class="age-modal-icon">⚠️</div>
+            <h2>年齢確認</h2>
+            <p class="age-modal-text">
+                このサイトは成人向けコンテンツを含みます。<br>
+                あなたは18歳以上ですか?
+            </p>
+            <div class="age-modal-buttons">
+                <button id="age-yes" class="btn btn-primary btn-large">18歳以上です。入場します。</button>
+                <button id="age-no" class="btn btn-outline btn-large">18歳未満です。退場します。</button>
+            </div>
+            <p class="age-modal-note">※18歳未満の方のアクセスはお断りしております。</p>
+        </div>
+    </div>
+
+    <!-- ヘッダー -->
+    <header class="header" id="header">
+        <div class="header-container">
+            <div class="logo">
+                <a href="#" onclick="navigateTo('home'); return false;">
+                    <span class="logo-text">ShinStar Selection</span>
+                    <span class="logo-sub">シンスター・セレクション</span>
+                </a>
+            </div>
+            <nav class="nav" id="nav">
+                <ul class="nav-list">
+                    <li><a href="#" onclick="navigateTo('home'); return false;">トップ</a></li>
+                    <li><a href="#" onclick="navigateTo('products'); return false;">作品一覧</a></li>
+                    <li><a href="#" onclick="navigateTo('genres'); return false;">ジャンル</a></li>
+                    <li><a href="#" onclick="navigateTo('ranking'); return false;">ランキング</a></li>
+                    <li><a href="#" onclick="navigateTo('beginners'); return false;">初めての方へ</a></li>
+                    <li><a href="#" onclick="navigateTo('terms'); return false;">注意事項</a></li>
+                </ul>
+            </nav>
+            <div class="header-cta">
+                <a href="https://al.dmm.co.jp/?lurl=https%3A%2F%2Fwww.dmm.co.jp%2Fadult%2F&af_id=YOUR-AFFILIATE-ID-HERE&ch=toolbar&ch_id=link" target="_blank" rel="noopener noreferrer" class="btn btn-accent btn-small">FANZAで探す →</a>
+            </div>
+            <button class="hamburger" id="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </header>
+
+    <!-- メインコンテンツエリア -->
+    <main id="main-content">
+        <!-- トップページ -->
+        <div id="page-home" class="page active">
+            <!-- ヒーローセクション -->
+            <section class="hero">
+                <div class="hero-background"></div>
+                <div class="hero-content">
+                    <h1 class="hero-title">初々しさと自然体。<br>成人素人・新人の魅力を厳選。</h1>
+                    <p class="hero-subtitle">作り込みすぎていない、ありのままの魅力を持つ<br>成人素人・新人作品を厳選してお届けします。</p>
+                    <div class="hero-buttons">
+                        <button onclick="navigateTo('products')" class="btn btn-primary btn-large">作品一覧を見る</button>
+                        <button onclick="navigateTo('ranking')" class="btn btn-outline-light btn-large">ランキングを見る</button>
+                    </div>
+                </div>
+                <div class="hero-notice">※18歳未満の方はご利用いただけません</div>
+            </section>
+
+            <!-- おすすめ作品カルーセル -->
+            <section class="section">
+                <div class="container">
+                    <h2 class="section-title">今週の注目作品</h2>
+                    <div class="carousel-container">
+                        <button class="carousel-btn carousel-btn-prev" onclick="carouselPrev()">‹</button>
+                        <div class="carousel" id="featured-carousel">
+                            <!-- JavaScriptで動的生成 -->
+                        </div>
+                        <button class="carousel-btn carousel-btn-next" onclick="carouselNext()">›</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 人気ランキングTOP5 -->
+            <section class="section section-gray">
+                <div class="container">
+                    <h2 class="section-title">今週の人気ランキング TOP5</h2>
+                    <div class="ranking-grid-top5" id="top5-ranking">
+                        <!-- JavaScriptで動的生成 -->
+                    </div>
+                    <div class="section-link">
+                        <a href="#" onclick="navigateTo('ranking'); return false;" class="link-arrow">ランキング全部見る →</a>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ジャンル別ナビゲーション -->
+            <section class="section">
+                <div class="container">
+                    <h2 class="section-title">ジャンルから探す</h2>
+                    <div class="genre-grid">
+                        <div class="genre-card" onclick="navigateTo('genres', 'amateur')">
+                            <div class="genre-icon">👤</div>
+                            <h3 class="genre-title">素人系</h3>
+                            <p class="genre-desc">リアルな素人感を大切にした作品</p>
+                        </div>
+                        <div class="genre-card" onclick="navigateTo('genres', 'newcomer')">
+                            <div class="genre-icon">✨</div>
+                            <h3 class="genre-title">新人・初撮り</h3>
+                            <p class="genre-desc">緊張と期待が入り混じる初めての撮影</p>
+                        </div>
+                        <div class="genre-card" onclick="navigateTo('genres', 'clean')">
+                            <div class="genre-icon">🌸</div>
+                            <h3 class="genre-title">清楚・ナチュラル</h3>
+                            <p class="genre-desc">飾らない自然体の魅力</p>
+                        </div>
+                        <div class="genre-card" onclick="navigateTo('genres', 'documentary')">
+                            <div class="genre-icon">🎬</div>
+                            <h3 class="genre-title">ドキュメンタリー風</h3>
+                            <p class="genre-desc">リアルな日常を切り取った作品</p>
+                        </div>
+                        <div class="genre-card" onclick="navigateTo('genres', 'daily')">
+                            <div class="genre-icon">☕</div>
+                            <h3 class="genre-title">日常系</h3>
+                            <p class="genre-desc">親しみやすい日常のシーン</p>
+                        </div>
+                        <div class="genre-card" onclick="navigateTo('genres', 'couple')">
+                            <div class="genre-icon">💑</div>
+                            <h3 class="genre-title">カップル・彼女系</h3>
+                            <p class="genre-desc">等身大のカップルの日常</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 新着作品 -->
+            <section class="section section-gray">
+                <div class="container">
+                    <h2 class="section-title">新着作品</h2>
+                    <div class="product-grid" id="new-products">
+                        <!-- JavaScriptで動的生成 -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- サイトの特徴 -->
+            <section class="section">
+                <div class="container">
+                    <h2 class="section-title">ShinStar Selectionの特徴</h2>
+                    <div class="features-grid">
+                        <div class="feature-card">
+                            <div class="feature-icon">🎯</div>
+                            <h3 class="feature-title">厳選された作品</h3>
+                            <p class="feature-desc">スタッフが丁寧に選んだ良質な作品のみを掲載</p>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-icon">🎥</div>
+                            <h3 class="feature-title">無料サンプルあり</h3>
+                            <p class="feature-desc">各作品の無料サンプルで雰囲気を確認できます</p>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-icon">🔄</div>
+                            <h3 class="feature-title">毎週更新</h3>
+                            <p class="feature-desc">新作・注目作品を定期的に追加しています</p>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-icon">✅</div>
+                            <h3 class="feature-title">安心の公式作品</h3>
+                            <p class="feature-desc">FANZA公式の安全な作品のみを紹介</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- FANZAへの導線バナー -->
+            <section class="cta-banner">
+                <div class="container">
+                    <h3 class="cta-banner-title">さらに多くの作品はFANZA公式で</h3>
+                    <p class="cta-banner-text">数万点以上の作品から、あなた好みの作品を探せます</p>
+                    <a href="https://al.dmm.co.jp/?lurl=https%3A%2F%2Fwww.dmm.co.jp%2Fadult%2F&af_id=YOUR-AFFILIATE-ID-HERE&ch=toolbar&ch_id=link" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-large">FANZA公式サイトで探す →</a>
+                </div>
+            </section>
+        </div>
+
+        <!-- 作品一覧ページ -->
+        <div id="page-products" class="page">
+            <section class="page-header">
+                <div class="container">
+                    <nav class="breadcrumb">
+                        <a href="#" onclick="navigateTo('home'); return false;">トップ</a>
+                        <span>/</span>
+                        <span>作品一覧</span>
+                    </nav>
+                    <h1 class="page-title">作品一覧</h1>
+                </div>
+            </section>
+
+            <section class="section">
+                <div class="container">
+                    <!-- フィルターバー -->
+                    <div class="filter-bar">
+                        <button class="filter-toggle" id="filter-toggle">
+                            <span>絞り込み・並び替え</span>
+                            <span class="filter-toggle-icon">▼</span>
+                        </button>
+                        <div class="filter-content" id="filter-content">
+                            <div class="filter-group">
+                                <label class="filter-label">ジャンル</label>
+                                <div class="filter-buttons">
+                                    <button class="filter-btn active" data-filter="all">全て</button>
+                                    <button class="filter-btn" data-filter="amateur">素人</button>
+                                    <button class="filter-btn" data-filter="newcomer">新人</button>
+                                    <button class="filter-btn" data-filter="first-time">初撮り</button>
+                                    <button class="filter-btn" data-filter="clean">清楚系</button>
+                                    <button class="filter-btn" data-filter="natural">ナチュラル系</button>
+                                </div>
+                            </div>
+                            <div class="filter-group">
+                                <label class="filter-label">並び替え</label>
+                                <select class="filter-select" id="sort-select">
+                                    <option value="popular">人気順</option>
+                                    <option value="newest">新着順</option>
+                                    <option value="recommended">おすすめ順</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 作品グリッド -->
+                    <div class="product-grid" id="products-list">
+                        <!-- JavaScriptで動的生成 -->
+                    </div>
+
+                    <!-- ページネーション -->
+                    <div class="pagination">
+                        <button class="btn btn-outline">もっと見る</button>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- ジャンル別ページ -->
+        <div id="page-genres" class="page">
+            <section class="page-header">
+                <div class="container">
+                    <nav class="breadcrumb">
+                        <a href="#" onclick="navigateTo('home'); return false;">トップ</a>
+                        <span>/</span>
+                        <span>ジャンル</span>
+                        <span id="genre-breadcrumb"></span>
+                    </nav>
+                    <h1 class="page-title" id="genre-title">ジャンル別作品</h1>
+                    <p class="page-subtitle" id="genre-description"></p>
+                </div>
+            </section>
+
+            <section class="section">
+                <div class="container">
+                    <div class="product-grid" id="genre-products">
+                        <!-- JavaScriptで動的生成 -->
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- 作品詳細ページ -->
+        <div id="page-detail" class="page">
+            <section class="page-header">
+                <div class="container">
+                    <nav class="breadcrumb">
+                        <a href="#" onclick="navigateTo('home'); return false;">トップ</a>
+                        <span>/</span>
+                        <a href="#" onclick="navigateTo('products'); return false;">作品一覧</a>
+                        <span>/</span>
+                        <span id="detail-breadcrumb">作品詳細</span>
+                    </nav>
+                </div>
+            </section>
+
+            <section class="section">
+                <div class="container">
+                    <div class="product-detail" id="product-detail">
+                        <!-- JavaScriptで動的生成 -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- レビューセクション -->
+            <section class="section section-gray">
+                <div class="container">
+                    <h2 class="section-title">ユーザーレビュー</h2>
+                    <div class="reviews" id="reviews-list">
+                        <!-- JavaScriptで動的生成 -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- 関連作品 -->
+            <section class="section">
+                <div class="container">
+                    <h2 class="section-title">関連作品</h2>
+                    <div class="carousel-container">
+                        <div class="carousel" id="related-products">
+                            <!-- JavaScriptで動的生成 -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- ランキングページ -->
+        <div id="page-ranking" class="page">
+            <section class="page-header">
+                <div class="container">
+                    <nav class="breadcrumb">
+                        <a href="#" onclick="navigateTo('home'); return false;">トップ</a>
+                        <span>/</span>
+                        <span>ランキング</span>
+                    </nav>
+                    <h1 class="page-title">人気ランキング</h1>
+                </div>
+            </section>
+
+            <section class="section">
+                <div class="container">
+                    <!-- タブナビゲーション -->
+                    <div class="tabs">
+                        <button class="tab active" data-tab="weekly">週間人気</button>
+                        <button class="tab" data-tab="newcomer">新人系おすすめ</button>
+                        <button class="tab" data-tab="amateur">素人系おすすめ</button>
+                    </div>
+
+                    <!-- ランキングコンテンツ -->
+                    <div class="tab-content active" id="tab-weekly">
+                        <div class="ranking-list" id="ranking-weekly">
+                            <!-- JavaScriptで動的生成 -->
+                        </div>
+                    </div>
+
+                    <div class="tab-content" id="tab-newcomer">
+                        <div class="ranking-list" id="ranking-newcomer">
+                            <!-- JavaScriptで動的生成 -->
+                        </div>
+                    </div>
+
+                    <div class="tab-content" id="tab-amateur">
+                        <div class="ranking-list" id="ranking-amateur">
+                            <!-- JavaScriptで動的生成 -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- 初めての方へページ -->
+        <div id="page-beginners" class="page">
+            <section class="page-header">
+                <div class="container">
+                    <nav class="breadcrumb">
+                        <a href="#" onclick="navigateTo('home'); return false;">トップ</a>
+                        <span>/</span>
+                        <span>初めての方へ</span>
+                    </nav>
+                    <h1 class="page-title">初めての方へ</h1>
+                    <p class="page-subtitle">何から見ればいいかわからない方のために、スタッフが厳選した作品をカテゴリ別にご紹介します。</p>
+                </div>
+            </section>
+
+            <!-- カテゴリ別おすすめ -->
+            <section class="section">
+                <div class="container">
+                    <div class="beginner-category">
+                        <h2 class="category-title">まずはここから：定番作品</h2>
+                        <p class="category-desc">初めての方でも安心して楽しめる、スタンダードな作品をセレクトしました。</p>
+                        <div class="product-grid" id="beginner-standard">
+                            <!-- JavaScriptで動的生成 -->
+                        </div>
+                    </div>
+
+                    <div class="beginner-category">
+                        <h2 class="category-title">自然体が魅力：ドキュメンタリー風</h2>
+                        <p class="category-desc">作り込みすぎない、リアルな雰囲気を楽しみたい方へ。</p>
+                        <div class="product-grid" id="beginner-documentary">
+                            <!-- JavaScriptで動的生成 -->
+                        </div>
+                    </div>
+
+                    <div class="beginner-category">
+                        <h2 class="category-title">清潔感重視の方へ：清楚系厳選</h2>
+                        <p class="category-desc">上品で落ち着いた雰囲気の作品を集めました。</p>
+                        <div class="product-grid" id="beginner-clean">
+                            <!-- JavaScriptで動的生成 -->
+                        </div>
+                    </div>
+
+                    <div class="beginner-category">
+                        <h2 class="category-title">カップル・日常系が好きな方へ</h2>
+                        <p class="category-desc">親しみやすい日常のシーンを楽しめる作品です。</p>
+                        <div class="product-grid" id="beginner-couple">
+                            <!-- JavaScriptで動的生成 -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- FAQ -->
+            <section class="section section-gray">
+                <div class="container">
+                    <h2 class="section-title">よくある質問</h2>
+                    <div class="faq">
+                        <div class="faq-item">
+                            <button class="faq-question">
+                                <span>このサイトはどのようなサイトですか？</span>
+                                <span class="faq-icon">+</span>
+                            </button>
+                            <div class="faq-answer">
+                                <p>成人向け作品の中でも、素人・新人・初々しい雰囲気の作品に特化したまとめサイトです。FANZA公式の作品を厳選してご紹介しています。</p>
+                            </div>
+                        </div>
+
+                        <div class="faq-item">
+                            <button class="faq-question">
+                                <span>無料で視聴できますか？</span>
+                                <span class="faq-icon">+</span>
+                            </button>
+                            <div class="faq-answer">
+                                <p>各作品には無料サンプルがあります。サンプルで雰囲気を確認し、気になった作品はFANZA公式サイトでご購入いただけます。</p>
+                            </div>
+                        </div>
+
+                        <div class="faq-item">
+                            <button class="faq-question">
+                                <span>どのジャンルから見始めればいいですか？</span>
+                                <span class="faq-icon">+</span>
+                            </button>
+                            <div class="faq-answer">
+                                <p>「初めての方へ」ページで、カテゴリ別におすすめ作品をご紹介しています。まずはそちらからご覧になることをおすすめします。</p>
+                            </div>
+                        </div>
+
+                        <div class="faq-item">
+                            <button class="faq-question">
+                                <span>サイトの利用に料金はかかりますか？</span>
+                                <span class="faq-icon">+</span>
+                            </button>
+                            <div class="faq-answer">
+                                <p>当サイトの閲覧は完全無料です。作品の購入はFANZA公式サイトで行っていただきます。</p>
+                            </div>
+                        </div>
+
+                        <div class="faq-item">
+                            <button class="faq-question">
+                                <span>更新頻度はどのくらいですか？</span>
+                                <span class="faq-icon">+</span>
+                            </button>
+                            <div class="faq-answer">
+                                <p>週に1〜2回程度、新作や注目作品を追加しています。定期的にチェックしていただくと、新しい作品に出会えます。</p>
+                            </div>
+                        </div>
+
+                        <div class="faq-item">
+                            <button class="faq-question">
+                                <span>スマートフォンでも利用できますか？</span>
+                                <span class="faq-icon">+</span>
+                            </button>
+                            <div class="faq-answer">
+                                <p>はい、当サイトはスマートフォンに最適化されています。どのデバイスからでも快適にご利用いただけます。</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- CTAバナー -->
+            <section class="cta-banner">
+                <div class="container">
+                    <h3 class="cta-banner-title">気になる作品は見つかりましたか？</h3>
+                    <p class="cta-banner-text">さらに多くの作品をFANZA公式サイトで探せます</p>
+                    <a href="https://al.dmm.co.jp/?lurl=https%3A%2F%2Fwww.dmm.co.jp%2Fadult%2F&af_id=YOUR-AFFILIATE-ID-HERE&ch=toolbar&ch_id=link" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-large">FANZA公式サイトを見る →</a>
+                </div>
+            </section>
+        </div>
+
+        <!-- 注意事項ページ -->
+        <div id="page-terms" class="page">
+            <section class="page-header">
+                <div class="container">
+                    <nav class="breadcrumb">
+                        <a href="#" onclick="navigateTo('home'); return false;">トップ</a>
+                        <span>/</span>
+                        <span>注意事項</span>
+                    </nav>
+                    <h1 class="page-title">ご利用にあたっての注意事項</h1>
+                </div>
+            </section>
+
+            <section class="section">
+                <div class="container">
+                    <div class="terms-content">
+                        <div class="alert alert-warning">
+                            <h2>⚠️ 18歳未満の方の閲覧は固くお断りします</h2>
+                            <p>当サイトは成人向けコンテンツを含むため、18歳未満の方はご利用いただけません。</p>
+                        </div>
+
+                        <div class="terms-section">
+                            <h2>サイトの目的</h2>
+                            <p>本サイト「ShinStar Selection（シンスター・セレクション）」は、成人向け動画配信サービス「FANZA」のアフィリエイトプログラムに参加し、素人・新人系の成人向け作品を紹介するまとめサイトです。</p>
+                        </div>
+
+                        <div class="terms-section">
+                            <h2>コンテンツについて</h2>
+                            <ul>
+                                <li>当サイトで紹介している作品は、全てFANZA公式の合法的な成人向けコンテンツです。</li>
+                                <li>出演者は全員18歳以上の成人です。</li>
+                                <li>違法コンテンツの紹介や共有は一切行っておりません。</li>
+                                <li>作品の視聴や購入はFANZA公式サイトで行っていただきます。</li>
+                            </ul>
+                        </div>
+
+                        <div class="terms-section">
+                            <h2>アフィリエイトについて</h2>
+                            <p>当サイトはFANZAのアフィリエイトプログラムに参加しており、作品のリンクを通じて購入が行われた場合、当サイトに紹介料が支払われます。ただし、購入者の方に追加の費用が発生することはありません。</p>
+                        </div>
+
+                        <div class="terms-section">
+                            <h2>免責事項</h2>
+                            <ul>
+                                <li>当サイトで紹介している作品の内容、品質、正確性について、当サイトは一切の責任を負いません。</li>
+                                <li>作品の購入や視聴に関するトラブルは、FANZA公式サイトの利用規約に準じます。</li>
+                                <li>当サイトのコンテンツは予告なく変更・削除される場合があります。</li>
+                                <li>外部リンク先のコンテンツについて、当サイトは責任を負いません。</li>
+                            </ul>
+                        </div>
+
+                        <div class="terms-section">
+                            <h2>プライバシーポリシー</h2>
+                            <p>当サイトでは、Googleアナリティクス等のアクセス解析ツールを使用しています。これらのツールはCookieを使用して情報を収集しますが、個人を特定する情報は含まれません。詳細については各サービスのプライバシーポリシーをご確認ください。</p>
+                        </div>
+
+                        <div class="terms-section">
+                            <h2>お問い合わせ</h2>
+                            <p>当サイトに関するお問い合わせは、以下のフォームからお願いいたします。</p>
+                            <div class="contact-form">
+                                <div class="form-group">
+                                    <label>お名前</label>
+                                    <input type="text" class="form-input" placeholder="山田太郎">
+                                </div>
+                                <div class="form-group">
+                                    <label>メールアドレス</label>
+                                    <input type="email" class="form-input" placeholder="example@example.com">
+                                </div>
+                                <div class="form-group">
+                                    <label>お問い合わせ内容</label>
+                                    <textarea class="form-textarea" rows="5" placeholder="お問い合わせ内容をご記入ください"></textarea>
+                                </div>
+                                <button class="btn btn-primary" onclick="alert('こちらはデモフォームです。実際の送信機能はご自身で実装してください。')">送信する</button>
+                            </div>
+                        </div>
+
+                        <div class="terms-section">
+                            <h2>著作権</h2>
+                            <p>当サイトのコンテンツ（テキスト、画像、デザイン等）の著作権は当サイト運営者に帰属します。無断転載・複製を禁じます。紹介している作品の著作権は各権利者に帰属します。</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- フッター -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <div class="footer-logo">
+                        <span class="logo-text">ShinStar Selection</span>
+                        <span class="logo-sub">シンスター・セレクション</span>
+                    </div>
+                    <p class="footer-desc">初々しさと自然体の成人素人・新人作品を厳選してお届けするまとめサイトです。</p>
+                </div>
+
+                <div class="footer-links">
+                    <div class="footer-column">
+                        <h4>サイトマップ</h4>
+                        <ul>
+                            <li><a href="#" onclick="navigateTo('home'); return false;">トップ</a></li>
+                            <li><a href="#" onclick="navigateTo('products'); return false;">作品一覧</a></li>
+                            <li><a href="#" onclick="navigateTo('ranking'); return false;">ランキング</a></li>
+                            <li><a href="#" onclick="navigateTo('beginners'); return false;">初めての方へ</a></li>
+                        </ul>
+                    </div>
+
+                    <div class="footer-column">
+                        <h4>ジャンル</h4>
+                        <ul>
+                            <li><a href="#" onclick="navigateTo('genres', 'amateur'); return false;">素人系</a></li>
+                            <li><a href="#" onclick="navigateTo('genres', 'newcomer'); return false;">新人・初撮り</a></li>
+                            <li><a href="#" onclick="navigateTo('genres', 'clean'); return false;">清楚・ナチュラル</a></li>
+                            <li><a href="#" onclick="navigateTo('genres', 'couple'); return false;">カップル系</a></li>
+                        </ul>
+                    </div>
+
+                    <div class="footer-column">
+                        <h4>ご案内</h4>
+                        <ul>
+                            <li><a href="#" onclick="navigateTo('terms'); return false;">利用規約・注意事項</a></li>
+                            <li><a href="https://al.dmm.co.jp/?lurl=https%3A%2F%2Fwww.dmm.co.jp%2Fadult%2F&af_id=YOUR-AFFILIATE-ID-HERE&ch=toolbar&ch_id=link" target="_blank" rel="noopener noreferrer">FANZA公式サイト</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p class="footer-affiliate">本サイトはFANZAアフィリエイトプログラムに参加しています。</p>
+                <p class="footer-notice">※本サイトは18歳以上の方を対象としています。18歳未満の方のアクセスはお断りしております。</p>
+                <p class="footer-copyright">© 2025 ShinStar Selection All Rights Reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
