@@ -9,6 +9,7 @@ if (!API_ID || !AFFILIATE_ID) {
 }
 
 const ENDPOINT = 'https://api.dmm.com/affiliate/v3/ItemList';
+const OUTPUT_PATH = path.join(process.cwd(), 'data', 'products.json');
 
 async function fetchItems({ hits = 100, offset = 1 } = {}) {
   const params = new URLSearchParams({
@@ -142,7 +143,7 @@ function normalizeGalleryImages(item) {
     .filter((url, index, arr) => arr.indexOf(url) === index);
 }
 
-function normalizeItem(item, index) {
+function normalizeItem(item) {
   const imageUrl =
     item.imageURL?.large ||
     item.imageURL?.list ||
@@ -173,14 +174,12 @@ function normalizeItem(item, index) {
   const longDescription = rawComment || fallbackText;
 
   return {
-    id: index + 1,
     contentId: item.content_id || '',
     title: item.title || 'タイトル未設定',
     genre,
     tags,
     description,
     longDescription,
-    ranking: index + 1,
     isNew: true,
     imageUrl,
     galleryImages,
@@ -191,9 +190,54 @@ function normalizeItem(item, index) {
   };
 }
 
+function loadExistingProducts() {
+  try {
+    if (!fs.existsSync(OUTPUT_PATH)) return [];
+    const raw = fs.readFileSync(OUTPUT_PATH, 'utf8');
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (error) {
+    console.error('Failed to load existing products.json:', error);
+    return [];
+  }
+}
+
+function mergeProducts(existingProducts, newProducts) {
+  const existingMap = new Map();
+
+  for (const product of existingProducts) {
+    if (product.contentId) {
+      existingMap.set(product.contentId, product);
+    }
+  }
+
+  for (const product of newProducts) {
+    if (!product.contentId) continue;
+
+    if (!existingMap.has(product.contentId)) {
+      existingMap.set(product.contentId, product);
+    }
+  }
+
+  const merged = Array.from(existingMap.values());
+
+  merged.sort((a, b) => {
+    const dateA = new Date(a.releaseDate || 0).getTime();
+    const dateB = new Date(b.releaseDate || 0).getTime();
+    return dateB - dateA;
+  });
+
+  return merged.map((product, index) => ({
+    ...product,
+    id: index + 1,
+    ranking: index + 1,
+    isNew: index < 30
+  }));
+}
+
 async function main() {
   const allItems = [];
-  const pages = 5; // 100件 × 5 = 500件
+  const pages = 10; // 100件 × 10 = 最大1000件取得
 
   for (let i = 0; i < pages; i++) {
     const offset = i * 100 + 1;
@@ -201,19 +245,21 @@ async function main() {
     const items = await fetchItems({ hits: 100, offset });
     allItems.push(...items);
 
-    if (items.length < 100) {
-      break;
-    }
+    if (items.length < 100) break;
   }
 
   const filteredItems = allItems.filter(shouldKeepItem);
-  const normalized = filteredItems.map((item, index) => normalizeItem(item, index));
+  const normalizedNewProducts = filteredItems.map(normalizeItem);
 
-  const outputPath = path.join(process.cwd(), 'data', 'products.json');
-  fs.mkdirSync(path.dirname(outputPath), { recursive: true });
-  fs.writeFileSync(outputPath, JSON.stringify(normalized, null, 2), 'utf8');
+  const existingProducts = loadExistingProducts();
+  const mergedProducts = mergeProducts(existingProducts, normalizedNewProducts);
 
-  console.log(`Saved ${normalized.length} products to ${outputPath}`);
+  fs.mkdirSync(path.dirname(OUTPUT_PATH), { recursive: true });
+  fs.writeFileSync(OUTPUT_PATH, JSON.stringify(mergedProducts, null, 2), 'utf8');
+
+  console.log(`Existing products: ${existingProducts.length}`);
+  console.log(`New fetched products: ${normalizedNewProducts.length}`);
+  console.log(`Saved merged products: ${mergedProducts.length}`);
 }
 
 main().catch(err => {
