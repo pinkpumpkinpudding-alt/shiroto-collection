@@ -1,26 +1,10 @@
 // ========================================
 // グローバル変数
 // ========================================
-const AFFILIATE_ID = 'miumiudayo-003'; // 使わなくてもOK。予備。
+const AFFILIATE_ID = 'miumiudayo-003'; // 予備
 const FANZA_BASE_URL = `https://al.dmm.co.jp/?lurl=https%3A%2F%2Fwww.dmm.co.jp%2Fadult%2F&af_id=${AFFILIATE_ID}&ch=toolbar&ch_id=link`;
 
 let productsData = [];
-
-async function loadProducts() {
-    try {
-        const res = await fetch('./data/products.json');
-        productsData = await res.json();
-
-        console.log("Products loaded:", productsData.length);
-
-        renderFeaturedCarousel();
-        renderTop5Ranking();
-        renderNewProducts();
-        renderProductsList();
-    } catch (error) {
-        console.error("Failed to load products:", error);
-    }
-}
 
 // ========================================
 // 外部JSON読み込み
@@ -36,6 +20,11 @@ async function loadProducts() {
         productsData = Array.isArray(data) ? data : [];
 
         console.log(`Loaded ${productsData.length} products`);
+
+        renderFeaturedCarousel();
+        renderTop5Ranking();
+        renderNewProducts();
+        renderProductsList();
     } catch (error) {
         console.error('loadProducts error:', error);
         productsData = [];
@@ -65,7 +54,6 @@ document.addEventListener('DOMContentLoaded', function () {
     initFAQ();
     initTabs();
     navigateTo('home');
-
     loadProducts();
 });
 
@@ -100,9 +88,7 @@ function initAgeVerification() {
     const yesBtn = document.getElementById('age-yes');
     const noBtn = document.getElementById('age-no');
 
-    if (!modal || !yesBtn || !noBtn) {
-        return;
-    }
+    if (!modal || !yesBtn || !noBtn) return;
 
     const verified = sessionStorage.getItem('age-verified');
 
@@ -129,9 +115,7 @@ function initHamburgerMenu() {
     const hamburger = document.getElementById('hamburger');
     const nav = document.getElementById('nav');
 
-    if (!hamburger || !nav) {
-        return;
-    }
+    if (!hamburger || !nav) return;
 
     hamburger.addEventListener('click', function () {
         hamburger.classList.toggle('active');
@@ -392,6 +376,20 @@ function renderProductDetail(productId) {
 
     const mainImageHtml = getProductImageHtml(product, 'product-detail-real-image');
 
+    const gallery = Array.isArray(product.galleryImages)
+        ? product.galleryImages.slice(0, 8)
+        : [];
+
+    const thumbnailHtml = gallery.length
+        ? gallery.map(url => `
+            <div class="thumbnail">
+                <img src="${url}" alt="${escapeHtml(product.title || '')}" class="product-real-image">
+            </div>
+        `).join('')
+        : `
+            <div class="thumbnail">${mainImageHtml}</div>
+        `;
+
     const sampleHtml = product.sampleVideoUrl
         ? `
             <video controls playsinline style="width:100%; max-height:420px; border-radius:12px;">
@@ -410,12 +408,11 @@ function renderProductDetail(productId) {
             <div class="product-detail-main-image">
                 ${mainImageHtml}
             </div>
+
             <div class="product-detail-thumbnails">
-                <div class="thumbnail">${mainImageHtml}</div>
-                <div class="thumbnail">${mainImageHtml}</div>
-                <div class="thumbnail">${mainImageHtml}</div>
-                <div class="thumbnail">${mainImageHtml}</div>
+                ${thumbnailHtml}
             </div>
+
             <div class="product-detail-sample">
                 <h3>サンプル動画</h3>
                 ${sampleHtml}
@@ -638,3 +635,4 @@ function smoothScrollTo(elementId) {
 }
 
 console.log('ShinStar Selection - Initialized');
+console.log(`Current loaded products: ${productsData.length}`);
