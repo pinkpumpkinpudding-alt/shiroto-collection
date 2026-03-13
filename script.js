@@ -372,9 +372,9 @@ function renderProductDetail(productId) {
     const container = document.getElementById('product-detail');
 
     if (breadcrumb) {
-    breadcrumb.textContent = product.title;
-    breadcrumb.dataset.productId = product.id;
-}
+        breadcrumb.textContent = product.title;
+        breadcrumb.dataset.productId = product.id;
+    }
     if (!container) return;
 
     const mainImageHtml = getProductImageHtml(product, 'product-detail-real-image');
@@ -394,85 +394,88 @@ function renderProductDetail(productId) {
         `;
 
     const sampleHtml = product.sampleVideoUrl
-    ? `
-        <a href="${product.sampleVideoUrl}" target="_blank" rel="noopener noreferrer" class="sample-video-btn">
-            <span>▶</span>
-            <span>サンプル動画を見る</span>
-        </a>
-      `
-    : `
-        <a href="${getProductLink(product)}" target="_blank" rel="noopener noreferrer" class="sample-video-btn">
-            <span>▶</span>
-            <span>FANZAでサンプルを見る</span>
-        </a>
-      `;
+        ? `
+            <a href="${product.sampleVideoUrl}" target="_blank" rel="noopener noreferrer" class="sample-video-btn">
+                <span>▶</span>
+                <span>サンプル動画を見る</span>
+            </a>
+          `
+        : `
+            <a href="${getProductLink(product)}" target="_blank" rel="noopener noreferrer" class="sample-video-btn">
+                <span>▶</span>
+                <span>FANZAでサンプルを見る</span>
+            </a>
+          `;
 
     container.innerHTML = `
-        <div class="product-detail-media">
-            <div class="product-detail-main-image">
-                ${mainImageHtml}
-            </div>
+        <div class="product-detail-main-wrap">
+            <div class="product-detail-media">
+                <div class="product-detail-main-image">
+                    ${mainImageHtml}
+                </div>
 
-            <div class="product-detail-thumbnails">
-                ${thumbnailHtml}
-            </div>
+                <div class="product-detail-thumbnails">
+                    ${thumbnailHtml}
+                </div>
 
-            <div class="product-detail-sample">
-                <h3>サンプル動画</h3>
-                ${sampleHtml}
-            </div>
-        </div>
-
-        <div class="product-detail-info">
-            <div class="product-tags">
-                ${(product.tags || []).map(tag => `<span class="tag">${escapeHtml(tag)}</span>`).join('')}
-            </div>
-            <div class="related-ranking">
-<h3>今人気の作品</h3>
-<div id="detail-ranking"></div>
-</div>
-            <h1 class="product-detail-title">${escapeHtml(product.title || '')}</h1>
-            <p class="product-detail-desc">${escapeHtml(product.longDescription || product.description || '')}</p>
-
-            <div class="product-detail-points">
-                <h3>おすすめポイント</h3>
-                <ul>
-                    <li>自然体の魅力がつまった一作</li>
-                    <li>作り込みすぎない演出</li>
-                    <li>初心者から上級者まで楽しめる内容</li>
-                </ul>
-            </div>
-
-            <div class="product-detail-target">
-                <div>
-                    <strong>こんな方におすすめ</strong><br>
-                    作り込みすぎていない自然な雰囲気が好きな方、リアルな素人感を求める方向けの作品です。
+                <div class="product-detail-sample">
+                    <h3>サンプル動画</h3>
+                    ${sampleHtml}
                 </div>
             </div>
 
-            <div class="product-detail-cta">
-                <button onclick="window.open('${getProductLink(product)}', '_blank')" class="btn btn-outline btn-large" style="width: 100%;">無料サンプルを見る</button>
-                <button onclick="window.open('${getProductLink(product)}', '_blank')" class="btn btn-primary btn-large" style="width: 100%;">FANZAで詳細を確認する →</button>
-            </div>
+            <div class="product-detail-info">
+                <div class="product-tags">
+                    ${(product.tags || []).map(tag => `<span class="tag">${escapeHtml(tag)}</span>`).join('')}
+                </div>
+                <h1 class="product-detail-title">${escapeHtml(product.title || '')}</h1>
+                <p class="product-detail-desc">${escapeHtml(product.longDescription || product.description || '')}</p>
 
-            <table class="product-detail-table">
-                <tr>
-                    <th>収録時間</th>
-                    <td>約120分</td>
-                </tr>
-                <tr>
-                    <th>配信開始日</th>
-                    <td>${escapeHtml(product.releaseDate || '取得データ準備中')}</td>
-                </tr>
-                <tr>
-                    <th>シリーズ</th>
-                    <td>${genreMap[product.genre]?.name || '—'}</td>
-                </tr>
-                <tr>
-                    <th>タグ</th>
-                    <td>${(product.tags || []).map(escapeHtml).join(', ')}</td>
-                </tr>
-            </table>
+                <div class="product-detail-points">
+                    <h3>おすすめポイント</h3>
+                    <ul>
+                        <li>自然体の魅力がつまった一作</li>
+                        <li>作り込みすぎない演出</li>
+                        <li>初心者から上級者まで楽しめる内容</li>
+                    </ul>
+                </div>
+
+                <div class="product-detail-target">
+                    <div>
+                        <strong>こんな方におすすめ</strong><br>
+                        作り込みすぎていない自然な雰囲気が好きな方、リアルな素人感を求める方向けの作品です。
+                    </div>
+                </div>
+
+                <div class="product-detail-cta">
+                    <button onclick="window.open('${getProductLink(product)}', '_blank')" class="btn btn-outline btn-large" style="width: 100%;">無料サンプルを見る</button>
+                    <button onclick="window.open('${getProductLink(product)}', '_blank')" class="btn btn-primary btn-large" style="width: 100%;">FANZAで詳細を確認する →</button>
+                </div>
+
+                <table class="product-detail-table">
+                    <tr>
+                        <th>収録時間</th>
+                        <td>約120分</td>
+                    </tr>
+                    <tr>
+                        <th>配信開始日</th>
+                        <td>${escapeHtml(product.releaseDate || '取得データ準備中')}</td>
+                    </tr>
+                    <tr>
+                        <th>シリーズ</th>
+                        <td>${genreMap[product.genre]?.name || '—'}</td>
+                    </tr>
+                    <tr>
+                        <th>タグ</th>
+                        <td>${(product.tags || []).map(escapeHtml).join(', ')}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="related-ranking">
+            <h3>今人気の作品</h3>
+            <div id="detail-ranking"></div>
         </div>
     `;
 
@@ -512,7 +515,6 @@ function renderRelatedProducts(currentProduct) {
             if (p.id === currentProduct.id) return false;
 
             const sameGenre = p.genre === currentProduct.genre;
-
             const sameTag = (p.tags || []).some(tag =>
                 (currentProduct.tags || []).includes(tag)
             );
@@ -522,6 +524,39 @@ function renderRelatedProducts(currentProduct) {
         .slice(0, 8);
 
     container.innerHTML = related.map(product => createProductCard(product)).join('');
+}
+
+function renderDetailRanking() {
+    const container = document.getElementById('detail-ranking');
+    if (!container) return;
+
+    const currentId = Number(document.getElementById('detail-breadcrumb')?.dataset?.productId);
+
+    const ranking = [...productsData]
+        .filter(p => p.id !== currentId)
+        .sort((a, b) => (a.ranking ?? 9999) - (b.ranking ?? 9999))
+        .slice(0, 4);
+
+    container.innerHTML = ranking.map((product, index) => {
+        const imageHtml = getProductImageHtml(product);
+
+        return `
+            <div class="detail-ranking-card">
+                <div class="detail-ranking-badge">${index + 1}</div>
+                <div class="detail-ranking-image">
+                    ${imageHtml}
+                </div>
+                <div class="detail-ranking-content">
+                    <h4 class="detail-ranking-title">${escapeHtml(product.title || '')}</h4>
+                    <p class="detail-ranking-desc">${escapeHtml(product.description || '')}</p>
+                    <div class="detail-ranking-buttons">
+                        <button onclick="window.open('${getProductLink(product)}', '_blank')" class="btn btn-outline btn-small">サンプル</button>
+                        <button onclick="navigateTo('detail', ${product.id})" class="btn btn-primary btn-small">詳細</button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
 }
 
 // ========================================
@@ -655,36 +690,3 @@ function smoothScrollTo(elementId) {
 
 console.log('ShinStar Selection - Initialized');
 console.log(`Current loaded products: ${productsData.length}`);
-
-function renderDetailRanking() {
-    const container = document.getElementById("detail-ranking");
-    if (!container) return;
-
-    const currentId = Number(document.getElementById('detail-breadcrumb')?.dataset?.productId);
-
-    const ranking = [...productsData]
-        .filter(p => p.id !== currentId)
-        .sort((a, b) => (a.ranking ?? 9999) - (b.ranking ?? 9999))
-        .slice(0, 4);
-
-    container.innerHTML = ranking.map((product, index) => {
-        const imageHtml = getProductImageHtml(product);
-
-        return `
-            <div class="detail-ranking-card">
-                <div class="detail-ranking-badge">${index + 1}</div>
-                <div class="detail-ranking-image">
-                    ${imageHtml}
-                </div>
-                <div class="detail-ranking-content">
-                    <h4 class="detail-ranking-title">${escapeHtml(product.title || '')}</h4>
-                    <p class="detail-ranking-desc">${escapeHtml(product.description || '')}</p>
-                    <div class="detail-ranking-buttons">
-                        <button onclick="window.open('${getProductLink(product)}', '_blank')" class="btn btn-outline btn-small">サンプル</button>
-                        <button onclick="navigateTo('detail', ${product.id})" class="btn btn-primary btn-small">詳細</button>
-                    </div>
-                </div>
-            </div>
-        `;
-    }).join("");
-}
