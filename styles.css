@@ -2251,3 +2251,293 @@ ul {
     grid-template-columns: 1fr;
   }
 }
+
+/* =========================
+   詳細ページ 崩れ修正用 最小上書き
+   ========================= */
+
+#product-detail {
+  max-width: 1100px !important;
+  margin: 0 auto !important;
+  padding: 24px 20px 40px !important;
+}
+
+.product-detail-main-wrap {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 28px !important;
+  align-items: start !important;
+}
+
+.product-detail-media,
+.product-detail-info {
+  background: #fff !important;
+  border: 1px solid #e8e1d0 !important;
+  border-radius: 12px !important;
+  padding: 20px !important;
+  box-sizing: border-box !important;
+  width: 100% !important;
+  min-width: 0 !important;
+}
+
+.product-detail-main-image {
+  width: 100% !important;
+  background: #f3f3f3 !important;
+  border-radius: 10px !important;
+  overflow: hidden !important;
+}
+
+.product-detail-real-image {
+  width: 100% !important;
+  height: auto !important;
+  display: block !important;
+  object-fit: contain !important;
+  background: #f7f7f7 !important;
+}
+
+.product-detail-thumbnails {
+  display: grid !important;
+  grid-template-columns: repeat(4, 1fr) !important;
+  gap: 10px !important;
+  margin-top: 14px !important;
+}
+
+.thumbnail {
+  aspect-ratio: 1 / 1 !important;
+  border-radius: 8px !important;
+  overflow: hidden !important;
+  background: #f3f3f3 !important;
+}
+
+.thumbnail img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  display: block !important;
+}
+
+.product-detail-info {
+  display: block !important;
+}
+
+.product-detail-title {
+  font-size: 24px !important;
+  line-height: 1.5 !important;
+  margin: 12px 0 16px !important;
+  color: #111 !important;
+  word-break: break-word !important;
+}
+
+.product-detail-desc {
+  font-size: 14px !important;
+  line-height: 1.9 !important;
+  color: #444 !important;
+  margin: 0 0 18px !important;
+}
+
+.product-detail-points,
+.product-detail-target {
+  background: #faf8f2 !important;
+  border: 1px solid #ece4d3 !important;
+  border-radius: 10px !important;
+  padding: 14px 16px !important;
+  margin-bottom: 14px !important;
+}
+
+.product-detail-points h3 {
+  margin: 0 0 10px !important;
+  font-size: 15px !important;
+}
+
+.product-detail-points ul {
+  margin: 0 !important;
+  padding-left: 18px !important;
+}
+
+.product-detail-points li {
+  font-size: 14px !important;
+  line-height: 1.8 !important;
+}
+
+.product-detail-cta {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 10px !important;
+  margin: 18px 0 !important;
+}
+
+.product-detail-table {
+  width: 100% !important;
+  border-collapse: collapse !important;
+  margin-top: 12px !important;
+}
+
+.product-detail-table th,
+.product-detail-table td {
+  padding: 12px 10px !important;
+  border-bottom: 1px solid #eee !important;
+  text-align: left !important;
+  font-size: 14px !important;
+}
+
+.product-detail-table th {
+  width: 35% !important;
+  background: #faf8f2 !important;
+}
+
+.product-detail-sample {
+  margin-top: 18px !important;
+}
+
+.sample-video-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  width: 100% !important;
+  min-height: 52px !important;
+  padding: 12px 16px !important;
+  border-radius: 10px !important;
+  background: #c8a85d !important;
+  color: #fff !important;
+  text-decoration: none !important;
+  font-weight: 700 !important;
+  box-sizing: border-box !important;
+}
+
+/* 人気作品は下に横4枚 */
+.related-ranking {
+  max-width: 1100px !important;
+  margin: 36px auto 0 !important;
+  padding: 0 20px 48px !important;
+  clear: both !important;
+}
+
+.related-ranking h3 {
+  font-size: 24px !important;
+  margin: 0 0 16px !important;
+  color: #111 !important;
+}
+
+#detail-ranking {
+  display: grid !important;
+  grid-template-columns: repeat(4, 1fr) !important;
+  gap: 16px !important;
+}
+
+.detail-ranking-card {
+  background: #fff !important;
+  border: 1px solid #e8e1d0 !important;
+  border-radius: 12px !important;
+  overflow: hidden !important;
+  position: relative !important;
+  display: flex !important;
+  flex-direction: column !important;
+  min-width: 0 !important;
+}
+
+.detail-ranking-badge {
+  position: absolute !important;
+  top: 8px !important;
+  left: 8px !important;
+  background: #c8a85d !important;
+  color: #fff !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  padding: 5px 8px !important;
+  border-radius: 999px !important;
+  z-index: 2 !important;
+}
+
+.detail-ranking-image {
+  width: 100% !important;
+  aspect-ratio: 3 / 4 !important;
+  background: #f3f3f3 !important;
+  overflow: hidden !important;
+}
+
+.detail-ranking-image img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  display: block !important;
+}
+
+.detail-ranking-content {
+  padding: 12px !important;
+}
+
+.detail-ranking-title {
+  font-size: 14px !important;
+  line-height: 1.5 !important;
+  margin: 0 0 8px !important;
+  color: #111 !important;
+  display: -webkit-box !important;
+  -webkit-line-clamp: 3 !important;
+  line-clamp: 3 !important;
+  -webkit-box-orient: vertical !important;
+  overflow: hidden !important;
+}
+
+.detail-ranking-desc {
+  font-size: 12px !important;
+  line-height: 1.7 !important;
+  color: #555 !important;
+  margin: 0 0 12px !important;
+  display: -webkit-box !important;
+  -webkit-line-clamp: 3 !important;
+  line-clamp: 3 !important;
+  -webkit-box-orient: vertical !important;
+  overflow: hidden !important;
+}
+
+.detail-ranking-buttons {
+  display: flex !important;
+  gap: 8px !important;
+}
+
+.detail-ranking-buttons .btn {
+  flex: 1 !important;
+  min-height: 38px !important;
+  font-size: 12px !important;
+}
+
+/* 変な縦書きや極端な細長さを強制解除 */
+.product-detail-media *,
+.product-detail-info *,
+.related-ranking * {
+  writing-mode: horizontal-tb !important;
+}
+
+/* スマホ */
+@media (max-width: 1024px) {
+  #detail-ranking {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+@media (max-width: 820px) {
+  .product-detail-main-wrap {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 640px) {
+  #product-detail,
+  .related-ranking {
+    padding-left: 14px !important;
+    padding-right: 14px !important;
+  }
+
+  .product-detail-thumbnails {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  #detail-ranking {
+    grid-template-columns: 1fr !important;
+  }
+
+  .product-detail-title {
+    font-size: 20px !important;
+  }
+}
