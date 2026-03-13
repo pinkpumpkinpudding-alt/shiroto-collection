@@ -1693,3 +1693,28 @@ ul {
         font-size: 1.5rem;
     }
 }
+/* 作品カード グリッド表示 */
+#related-products,
+#detail-ranking,
+#products-list,
+#genre-products {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 20px;
+  margin-top: 20px;
+}
+
+/* カード高さ揃える */
+.product-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+/* 画像サイズ統一 */
+.product-image img {
+  width: 100%;
+  height: 260px;
+  object-fit: cover;
+  border-radius: 8px;
+}
