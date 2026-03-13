@@ -32,7 +32,7 @@ async function fetchItems({ hits = 100, offset = 1 } = {}) {
 
   const json = await res.json();
 
-  if (!json.result || !json.result.items) {
+  if (!json.result || !Array.isArray(json.result.items)) {
     console.error(JSON.stringify(json, null, 2));
     throw new Error('Invalid DMM API response');
   }
@@ -41,7 +41,10 @@ async function fetchItems({ hits = 100, offset = 1 } = {}) {
 }
 
 function stripHtml(text = '') {
-  return String(text).replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
+  return String(text)
+    .replace(/<[^>]*>/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
 function mapGenre(item) {
@@ -106,7 +109,6 @@ function shouldKeepItem(item) {
     '4時間',
     '8時間',
     '16時間',
-    '巨乳',
     '人妻',
     '熟女',
     '痴女',
@@ -114,10 +116,7 @@ function shouldKeepItem(item) {
     '寝取られ',
     'ニューハーフ',
     '男の娘',
-    'フェラ',
-    '中出し',
-    '乱交',
-    '童貞'
+    '乱交'
   ];
 
   const hasInclude = includeKeywords.some(keyword => text.includes(keyword.toLowerCase()));
@@ -126,23 +125,38 @@ function shouldKeepItem(item) {
   return hasInclude && !hasExclude;
 }
 
-const sampleVideoUrl =
-  item.sampleMovieURL?.size_720_480 ||
-  item.sampleMovieURL?.size_644_414 ||
-  item.sampleMovieURL?.size_560_360 ||
-  item.sampleMovieURL?.pc?.flag ||
-  item.sampleMovieURL?.sp?.flag ||
-  '';
+function normalizeGalleryImages(item) {
+  const largeImages = Array.isArray(item.sampleImageURL?.sample_l?.image)
+    ? item.sampleImageURL.sample_l.image
+    : [];
 
-  const galleryImages =
-    item.sampleImageURL?.sample_l?.image ||
-    item.sampleImageURL?.sample_s?.image ||
-    [];
+  const smallImages = Array.isArray(item.sampleImageURL?.sample_s?.image)
+    ? item.sampleImageURL.sample_s.image
+    : [];
+
+  const rawImages = largeImages.length ? largeImages : smallImages;
+
+  return rawImages
+    .filter(Boolean)
+    .map(url => String(url).trim())
+    .filter((url, index, arr) => arr.indexOf(url) === index);
+}
+
+function normalizeItem(item, index) {
+  const imageUrl =
+    item.imageURL?.large ||
+    item.imageURL?.list ||
+    item.imageURL?.small ||
+    '';
+
+  const galleryImages = normalizeGalleryImages(item);
 
   const sampleVideoUrl =
     item.sampleMovieURL?.size_720_480 ||
     item.sampleMovieURL?.size_644_414 ||
+    item.sampleMovieURL?.size_560_360 ||
     item.sampleMovieURL?.pc?.flag ||
+    item.sampleMovieURL?.sp?.flag ||
     '';
 
   const fanzaUrl = item.URL || '';
@@ -179,7 +193,7 @@ const sampleVideoUrl =
 
 async function main() {
   const allItems = [];
-  const pages = 5; // まずは500件
+  const pages = 5; // 100件 × 5 = 500件
 
   for (let i = 0; i < pages; i++) {
     const offset = i * 100 + 1;
@@ -187,7 +201,9 @@ async function main() {
     const items = await fetchItems({ hits: 100, offset });
     allItems.push(...items);
 
-    if (items.length < 100) break;
+    if (items.length < 100) {
+      break;
+    }
   }
 
   const filteredItems = allItems.filter(shouldKeepItem);
