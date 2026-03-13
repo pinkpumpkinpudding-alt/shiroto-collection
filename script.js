@@ -1,180 +1,30 @@
 // ========================================
 // グローバル変数
 // ========================================
-const AFFILIATE_ID = 'YOUR-AFFILIATE-ID-HERE'; // FANZAアフィリエイトID（要差し替え）
+const AFFILIATE_ID = 'YOUR-AFFILIATE-ID-HERE'; // 使わなくてもOK。予備。
 const FANZA_BASE_URL = `https://al.dmm.co.jp/?lurl=https%3A%2F%2Fwww.dmm.co.jp%2Fadult%2F&af_id=${AFFILIATE_ID}&ch=toolbar&ch_id=link`;
 
+let productsData = [];
+
 // ========================================
-// 作品データ
-// ※実際の作品に差し替える際は、このデータを編集してください
+// 外部JSON読み込み
 // ========================================
-const productsData = [
-    {
-        id: 1,
-        title: 'Do you like beautiful women？5か国語以上を話せる美スタイル現役通訳 国仲ありな AV Debut！',
-        genre: 'newcomer',
-        tags: ['新人', '初撮り'],
-        description: 'スタイル抜群スレンダー系の美女。',
-        longDescription: `五か国語以上を話せる美人通訳さんが出演する注目作。
-明るい性格と笑顔が印象的で、自然体の魅力が光る一本です。
-知的な雰囲気と抜群のスタイル、そのギャップを楽しめる作品として紹介しています。`,
-        ranking: 1,
-        isNew: true
-    },
-    {
-        id: 2,
-        title: 'となりのあの子 素人ファイル',
-        genre: 'amateur',
-        tags: ['素人', '日常系', '清楚'],
-        description: 'どこにでもいそうな親しみやすさと、隠された魅力のギャップが見どころ。',
-        longDescription: `日常の中にいそうな親しみやすい雰囲気と、撮影を通じて見えてくる新たな一面。
-自然体の魅力を大切にした作品です。`,
-        ranking: 3,
-        isNew: true
-    },
-    {
-        id: 3,
-        title: '新人デビュー作 〜はじまりの一歩〜',
-        genre: 'newcomer',
-        tags: ['新人', 'フレッシュ', '注目'],
-        description: '期待の新人が踏み出す記念すべき第一歩。初々しさが光る注目作。',
-        longDescription: `業界に足を踏み入れたばかりの新人が見せる、フレッシュな魅力と成長の過程。
-これからの活躍が期待される注目の一作です。`,
-        ranking: 5,
-        isNew: true
-    },
-    {
-        id: 4,
-        title: 'ナチュラルビューティー 素顔のまま',
-        genre: 'clean',
-        tags: ['ナチュラル', '素人', '清楚'],
-        description: '作り込まない自然な美しさ。メイクを抑えた素顔の魅力を堪能できる。',
-        longDescription: `過度なメイクや演出を避け、ありのままの魅力を大切にした作品。
-自然体の美しさと清潔感を感じていただけます。`,
-        ranking: 7,
-        isNew: false
-    },
-    {
-        id: 5,
-        title: '日常のかけら〜普通の毎日〜',
-        genre: 'daily',
-        tags: ['日常系', '素人', '自然体'],
-        description: '日々の何気ない瞬間を切り取った、リアリティ溢れる日常系作品。',
-        longDescription: `特別なシチュエーションではなく、日常の延長線上にある自然な空気感を大切にしました。
-親しみやすさが魅力です。`,
-        ranking: 12,
-        isNew: false
-    },
-    {
-        id: 6,
-        title: '初撮り素人 突撃インタビュー',
-        genre: 'amateur',
-        tags: ['初撮り', '素人', 'リアル'],
-        description: 'カメラの前で語られる本音と、撮影への素直な反応が見どころ。',
-        longDescription: `撮影前のインタビューから本編まで、ありのままの姿を収録。
-緊張しながらも真摯に向き合う姿勢が印象的です。`,
-        ranking: 8,
-        isNew: false
-    },
-    {
-        id: 7,
-        title: '清楚系新人 Vol.3',
-        genre: 'clean',
-        tags: ['清楚', '新人', '上品'],
-        description: '清潔感あふれる佇まいと、控えめながら芯のある魅力が光る。',
-        longDescription: `派手さはないけれど、確かな存在感を放つ清楚系新人。
-上品な雰囲気と内に秘めた情熱のコントラストが魅力です。`,
-        ranking: 4,
-        isNew: false
-    },
-    {
-        id: 8,
-        title: 'ふたりのじかん〜彼女系〜',
-        genre: 'couple',
-        tags: ['カップル', '彼女系', '日常'],
-        description: 'カップルの等身大の日常を覗き見るような、親密な空気感。',
-        longDescription: `カップルの日常的な時間を切り取った作品。
-演出を最小限にし、ふたりの自然なやり取りを大切にしました。`,
-        ranking: 6,
-        isNew: false
-    },
-    {
-        id: 9,
-        title: '素の表情〜メイクなしの素顔〜',
-        genre: 'natural',
-        tags: ['ナチュラル', '素顔', '個性派'],
-        description: 'メイクを落とした素顔で魅せる、飾らない魅力と個性。',
-        longDescription: `厚化粧を避け、素顔に近い状態で撮影。
-作り込まない美しさと、個性が際立つ仕上がりになっています。`,
-        ranking: 10,
-        isNew: false
-    },
-    {
-        id: 10,
-        title: '新人発掘 2025春',
-        genre: 'newcomer',
-        tags: ['新人', '注目', 'フレッシュ'],
-        description: '2025年春注目の新人を発掘。期待値の高いフレッシュな魅力。',
-        longDescription: `今季注目の新人をピックアップ。
-これからの活躍が期待される逸材の、初々しくもエネルギー溢れる魅力をお楽しみください。`,
-        ranking: 2,
-        isNew: true
-    },
-    {
-        id: 11,
-        title: 'アマチュア記録集 Vol.2',
-        genre: 'amateur',
-        tags: ['素人', 'アマチュア', 'リアル'],
-        description: 'プロではないからこその自然な反応と、リアルな雰囲気が魅力。',
-        longDescription: `アマチュアならではの飾らない姿と、緊張しながらも前向きに撮影に臨む姿勢が印象的な一作です。`,
-        ranking: 9,
-        isNew: false
-    },
-    {
-        id: 12,
-        title: '清楚な休日〜オフの彼女〜',
-        genre: 'clean',
-        tags: ['清楚', '日常', 'ナチュラル'],
-        description: '休日のリラックスした空気の中で見せる、自然体の清楚な魅力。',
-        longDescription: `オフの日のゆったりとした時間を切り取った作品。
-普段着姿の清楚な雰囲気と、リラックスした表情が魅力です。`,
-        ranking: 11,
-        isNew: false
-    },
-    {
-        id: 13,
-        title: '初めての告白〜新人特集〜',
-        genre: 'newcomer',
-        tags: ['新人', '初撮り', 'フレッシュ'],
-        description: '撮影への想いを語る新人の姿と、初々しいパフォーマンスが見どころ。',
-        longDescription: `撮影に至るまでの経緯や想いを丁寧にインタビュー。
-初めての経験に真摯に向き合う姿勢が印象的です。`,
-        ranking: 13,
-        isNew: false
-    },
-    {
-        id: 14,
-        title: 'どこにでもいる彼女 Season2',
-        genre: 'daily',
-        tags: ['日常', '素人', '親しみ'],
-        description: '好評だった前作に続く第2弾。親しみやすさが際立つ日常系作品。',
-        longDescription: `前作で好評だった日常系シリーズの続編。
-変わらぬ親しみやすさと、少し成長した姿の両方をお楽しみいただけます。`,
-        ranking: 14,
-        isNew: false
-    },
-    {
-        id: 15,
-        title: '素顔のドキュメント〜リアルの日常〜',
-        genre: 'documentary',
-        tags: ['ドキュメント', 'リアル', '自然体'],
-        description: '日常を丁寧に追ったドキュメンタリータッチの意欲作。',
-        longDescription: `演出を極力排除し、日常の延長線上にある自然な姿を記録。
-ドキュメンタリーのような空気感が特徴の作品です。`,
-        ranking: 15,
-        isNew: false
+async function loadProducts() {
+    try {
+        const res = await fetch('./data/products.json', { cache: 'no-store' });
+        if (!res.ok) {
+            throw new Error(`Failed to load products.json: ${res.status}`);
+        }
+
+        const data = await res.json();
+        productsData = Array.isArray(data) ? data : [];
+
+        console.log(`Loaded ${productsData.length} products`);
+    } catch (error) {
+        console.error('loadProducts error:', error);
+        productsData = [];
     }
-];
+}
 
 // ========================================
 // ジャンルマッピング
@@ -192,7 +42,9 @@ const genreMap = {
 // ========================================
 // ページロード時の初期化
 // ========================================
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', async function () {
+    await loadProducts();
+
     initAgeVerification();
     initHamburgerMenu();
     renderFeaturedCarousel();
@@ -203,6 +55,29 @@ document.addEventListener('DOMContentLoaded', function () {
     initTabs();
     navigateTo('home');
 });
+
+// ========================================
+// 共通ヘルパー
+// ========================================
+function getProductLink(product) {
+    return product.affiliateUrl || product.fanzaUrl || FANZA_BASE_URL;
+}
+
+function getProductImageHtml(product, className = 'product-real-image') {
+    if (product.imageUrl) {
+        return `<img src="${product.imageUrl}" alt="${escapeHtml(product.title || '')}" class="${className}">`;
+    }
+    return `<div class="product-image-placeholder">📷</div>`;
+}
+
+function escapeHtml(str) {
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
 
 // ========================================
 // 年齢確認モーダル
@@ -325,26 +200,28 @@ function renderTop5Ranking() {
     if (!container) return;
 
     const top5 = [...productsData]
-        .sort((a, b) => a.ranking - b.ranking)
+        .sort((a, b) => (a.ranking ?? 9999) - (b.ranking ?? 9999))
         .slice(0, 5);
 
     container.innerHTML = top5.map((product, index) => {
         const rank = index + 1;
+        const imageHtml = getProductImageHtml(product);
+
         return `
             <div class="ranking-card ${rank === 1 ? 'rank-1' : ''}">
                 <div class="ranking-badge rank-${rank <= 3 ? rank : 'other'}">${rank}</div>
                 <div class="product-image">
-                    <div class="product-image-placeholder">📷</div>
+                    ${imageHtml}
                 </div>
                 <div class="product-content">
                     <div class="product-tags">
-                        ${product.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+                        ${(product.tags || []).map(tag => `<span class="tag">${escapeHtml(tag)}</span>`).join('')}
                     </div>
-                    <h3 class="product-title">${product.title}</h3>
-                    <p class="product-desc">${product.description}</p>
+                    <h3 class="product-title">${escapeHtml(product.title || '')}</h3>
+                    <p class="product-desc">${escapeHtml(product.description || '')}</p>
                     <div class="product-buttons">
-                        <button onclick="window.open('${FANZA_BASE_URL}', '_blank')" class="btn btn-outline btn-small">無料サンプルを見る</button>
-                        <button onclick="window.open('${FANZA_BASE_URL}', '_blank')" class="btn btn-accent btn-small">FANZAで詳細を見る →</button>
+                        <button onclick="window.open('${getProductLink(product)}', '_blank')" class="btn btn-outline btn-small">無料サンプルを見る</button>
+                        <button onclick="window.open('${getProductLink(product)}', '_blank')" class="btn btn-accent btn-small">FANZAで詳細を見る →</button>
                     </div>
                 </div>
             </div>
@@ -367,20 +244,22 @@ function renderNewProducts() {
 // プロダクトカード生成
 // ========================================
 function createProductCard(product, showNewBadge = false) {
+    const imageHtml = getProductImageHtml(product);
+
     return `
         <div class="product-card">
             <div class="product-image">
-                <div class="product-image-placeholder">📷</div>
+                ${imageHtml}
                 ${showNewBadge && product.isNew ? '<span class="product-badge">NEW</span>' : ''}
             </div>
             <div class="product-content">
                 <div class="product-tags">
-                    ${product.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+                    ${(product.tags || []).map(tag => `<span class="tag">${escapeHtml(tag)}</span>`).join('')}
                 </div>
-                <h3 class="product-title">${product.title}</h3>
-                <p class="product-desc">${product.description}</p>
+                <h3 class="product-title">${escapeHtml(product.title || '')}</h3>
+                <p class="product-desc">${escapeHtml(product.description || '')}</p>
                 <div class="product-buttons">
-                    <button onclick="window.open('${FANZA_BASE_URL}', '_blank')" class="btn btn-outline">無料サンプルを見る</button>
+                    <button onclick="window.open('${getProductLink(product)}', '_blank')" class="btn btn-outline">無料サンプルを見る</button>
                     <button onclick="navigateTo('detail', ${product.id})" class="btn btn-primary">詳細を見る →</button>
                 </div>
             </div>
@@ -448,11 +327,11 @@ function renderProductsList() {
     }
 
     if (currentSort === 'popular') {
-        filtered.sort((a, b) => a.ranking - b.ranking);
+        filtered.sort((a, b) => (a.ranking ?? 9999) - (b.ranking ?? 9999));
     } else if (currentSort === 'newest') {
         filtered.sort((a, b) => Number(b.isNew) - Number(a.isNew));
     } else if (currentSort === 'recommended') {
-        filtered.sort((a, b) => a.id - b.id);
+        filtered.sort((a, b) => (a.id ?? 0) - (b.id ?? 0));
     }
 
     container.innerHTML = filtered.map(product => createProductCard(product)).join('');
@@ -498,32 +377,44 @@ function renderProductDetail(productId) {
     if (breadcrumb) breadcrumb.textContent = product.title;
     if (!container) return;
 
+    const mainImageHtml = getProductImageHtml(product, 'product-detail-real-image');
+
+    const sampleHtml = product.sampleVideoUrl
+        ? `
+            <video controls playsinline style="width:100%; max-height:420px; border-radius:12px;">
+                <source src="${product.sampleVideoUrl}" type="video/mp4">
+            </video>
+          `
+        : `
+            <button onclick="window.open('${getProductLink(product)}', '_blank')" class="sample-video-btn">
+                <span>▶</span>
+                <span>サンプル動画を見る</span>
+            </button>
+          `;
+
     container.innerHTML = `
         <div class="product-detail-media">
             <div class="product-detail-main-image">
-                <div class="product-image-placeholder">📷</div>
+                ${mainImageHtml}
             </div>
             <div class="product-detail-thumbnails">
-                <div class="thumbnail"><div class="product-image-placeholder">📷</div></div>
-                <div class="thumbnail"><div class="product-image-placeholder">📷</div></div>
-                <div class="thumbnail"><div class="product-image-placeholder">📷</div></div>
-                <div class="thumbnail"><div class="product-image-placeholder">📷</div></div>
+                <div class="thumbnail">${mainImageHtml}</div>
+                <div class="thumbnail">${mainImageHtml}</div>
+                <div class="thumbnail">${mainImageHtml}</div>
+                <div class="thumbnail">${mainImageHtml}</div>
             </div>
             <div class="product-detail-sample">
                 <h3>サンプル動画</h3>
-                <button onclick="window.open('${FANZA_BASE_URL}', '_blank')" class="sample-video-btn">
-                    <span>▶</span>
-                    <span>サンプル動画を見る</span>
-                </button>
+                ${sampleHtml}
             </div>
         </div>
 
         <div class="product-detail-info">
             <div class="product-tags">
-                ${product.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+                ${(product.tags || []).map(tag => `<span class="tag">${escapeHtml(tag)}</span>`).join('')}
             </div>
-            <h1 class="product-detail-title">${product.title}</h1>
-            <p class="product-detail-desc">${product.longDescription}</p>
+            <h1 class="product-detail-title">${escapeHtml(product.title || '')}</h1>
+            <p class="product-detail-desc">${escapeHtml(product.longDescription || product.description || '')}</p>
 
             <div class="product-detail-points">
                 <h3>おすすめポイント</h3>
@@ -542,8 +433,8 @@ function renderProductDetail(productId) {
             </div>
 
             <div class="product-detail-cta">
-                <button onclick="window.open('${FANZA_BASE_URL}', '_blank')" class="btn btn-outline btn-large" style="width: 100%;">無料サンプルを見る</button>
-                <button onclick="window.open('${FANZA_BASE_URL}', '_blank')" class="btn btn-primary btn-large" style="width: 100%;">FANZAで詳細を確認する →</button>
+                <button onclick="window.open('${getProductLink(product)}', '_blank')" class="btn btn-outline btn-large" style="width: 100%;">無料サンプルを見る</button>
+                <button onclick="window.open('${getProductLink(product)}', '_blank')" class="btn btn-primary btn-large" style="width: 100%;">FANZAで詳細を確認する →</button>
             </div>
 
             <table class="product-detail-table">
@@ -553,7 +444,7 @@ function renderProductDetail(productId) {
                 </tr>
                 <tr>
                     <th>配信開始日</th>
-                    <td>2025年3月</td>
+                    <td>${escapeHtml(product.releaseDate || '取得データ準備中')}</td>
                 </tr>
                 <tr>
                     <th>シリーズ</th>
@@ -561,7 +452,7 @@ function renderProductDetail(productId) {
                 </tr>
                 <tr>
                     <th>タグ</th>
-                    <td>${product.tags.join(', ')}</td>
+                    <td>${(product.tags || []).map(escapeHtml).join(', ')}</td>
                 </tr>
             </table>
         </div>
@@ -634,7 +525,7 @@ function renderRankingPage() {
     const newcomerContainer = document.getElementById('ranking-newcomer');
     const amateurContainer = document.getElementById('ranking-amateur');
 
-    const weekly = [...productsData].sort((a, b) => a.ranking - b.ranking).slice(0, 10);
+    const weekly = [...productsData].sort((a, b) => (a.ranking ?? 9999) - (b.ranking ?? 9999)).slice(0, 10);
     const newcomer = productsData.filter(p => p.genre === 'newcomer').slice(0, 10);
     const amateur = productsData.filter(p => p.genre === 'amateur').slice(0, 10);
 
@@ -650,18 +541,22 @@ function renderRankingPage() {
 }
 
 function createRankingItem(product, rank) {
+    const imageHtml = product.imageUrl
+        ? `<img src="${product.imageUrl}" alt="${escapeHtml(product.title || '')}" class="product-real-image">`
+        : '📷';
+
     return `
         <div class="ranking-item">
             <div class="ranking-item-rank rank-${rank <= 3 ? rank : 'other'}">${rank}</div>
-            <div class="ranking-item-image">📷</div>
+            <div class="ranking-item-image">${imageHtml}</div>
             <div class="ranking-item-content">
-                <h3 class="ranking-item-title">${product.title}</h3>
+                <h3 class="ranking-item-title">${escapeHtml(product.title || '')}</h3>
                 <div class="product-tags">
-                    ${product.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+                    ${(product.tags || []).map(tag => `<span class="tag">${escapeHtml(tag)}</span>`).join('')}
                 </div>
-                <p class="ranking-item-desc">${product.description}</p>
+                <p class="ranking-item-desc">${escapeHtml(product.description || '')}</p>
                 <div class="ranking-item-buttons">
-                    <button onclick="window.open('${FANZA_BASE_URL}', '_blank')" class="btn btn-outline">無料サンプル</button>
+                    <button onclick="window.open('${getProductLink(product)}', '_blank')" class="btn btn-outline">無料サンプル</button>
                     <button onclick="navigateTo('detail', ${product.id})" class="btn btn-primary">詳細を見る</button>
                 </div>
             </div>
@@ -730,4 +625,3 @@ function smoothScrollTo(elementId) {
 }
 
 console.log('ShinStar Selection - Initialized');
-console.log(`Total products: ${productsData.length}`);
