@@ -371,7 +371,10 @@ function renderProductDetail(productId) {
     const breadcrumb = document.getElementById('detail-breadcrumb');
     const container = document.getElementById('product-detail');
 
-    if (breadcrumb) breadcrumb.textContent = product.title;
+    if (breadcrumb) {
+    breadcrumb.textContent = product.title;
+    breadcrumb.dataset.productId = product.id;
+}
     if (!container) return;
 
     const mainImageHtml = getProductImageHtml(product, 'product-detail-real-image');
