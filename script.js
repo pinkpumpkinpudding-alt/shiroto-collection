@@ -11,8 +11,7 @@ const FANZA_BASE_URL = `https://al.dmm.co.jp/?lurl=https%3A%2F%2Fwww.dmm.co.jp%2
 const productsData = [
     {
         id: 1,
-        title: 'Do you like beautiful women？5か国語以上を話せる美スタイル現役通訳 国仲ありな AV Debut！
-',
+        title: 'Do you like beautiful women？5か国語以上を話せる美スタイル現役通訳 国仲ありな AV Debut！',
         genre: 'newcomer',
         tags: ["新人","初撮り"],
         description: 'スタイル抜群スレンダー系の美女',
