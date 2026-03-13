@@ -1718,3 +1718,99 @@ ul {
   object-fit: cover;
   border-radius: 8px;
 }
+
+#detail-ranking {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.detail-ranking-card {
+  background: #fff;
+  border: 1px solid #e9e2d0;
+  border-radius: 12px;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.detail-ranking-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: #c8a85d;
+  color: #fff;
+  font-weight: 700;
+  font-size: 12px;
+  line-height: 1;
+  padding: 6px 8px;
+  border-radius: 999px;
+  z-index: 2;
+}
+
+.detail-ranking-image {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  background: #f3f3f3;
+}
+
+.detail-ranking-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.detail-ranking-content {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+}
+
+.detail-ranking-title {
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 0;
+  word-break: break-word;
+}
+
+.detail-ranking-desc {
+  font-size: 12px;
+  line-height: 1.6;
+  color: #555;
+  margin: 0;
+}
+
+.detail-ranking-buttons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: auto;
+}
+
+.related-ranking {
+  margin-top: 36px;
+}
+
+.related-ranking h3 {
+  font-size: 22px;
+  margin-bottom: 12px;
+}
+
+@media (max-width: 1100px) {
+  #detail-ranking {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  #detail-ranking {
+    grid-template-columns: 1fr;
+  }
+}
