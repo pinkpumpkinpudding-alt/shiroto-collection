@@ -657,8 +657,10 @@ function renderDetailRanking() {
     const container = document.getElementById("detail-ranking");
     if (!container) return;
 
+    const currentId = Number(document.getElementById('detail-breadcrumb')?.dataset?.productId);
+
     const ranking = [...productsData]
-        .filter(p => p.id !== Number(document.getElementById('detail-breadcrumb')?.dataset?.productId))
+        .filter(p => p.id !== currentId)
         .sort((a, b) => (a.ranking ?? 9999) - (b.ranking ?? 9999))
         .slice(0, 4);
 
@@ -666,15 +668,15 @@ function renderDetailRanking() {
         const imageHtml = getProductImageHtml(product);
 
         return `
-            <div class="mini-ranking-card">
-                <div class="mini-ranking-badge">${index + 1}</div>
-                <div class="mini-ranking-image">
+            <div class="detail-ranking-card">
+                <div class="detail-ranking-badge">${index + 1}</div>
+                <div class="detail-ranking-image">
                     ${imageHtml}
                 </div>
-                <div class="mini-ranking-content">
-                    <h4 class="mini-ranking-title">${escapeHtml(product.title || '')}</h4>
-                    <p class="mini-ranking-desc">${escapeHtml(product.description || '')}</p>
-                    <div class="mini-ranking-buttons">
+                <div class="detail-ranking-content">
+                    <h4 class="detail-ranking-title">${escapeHtml(product.title || '')}</h4>
+                    <p class="detail-ranking-desc">${escapeHtml(product.description || '')}</p>
+                    <div class="detail-ranking-buttons">
                         <button onclick="window.open('${getProductLink(product)}', '_blank')" class="btn btn-outline btn-small">サンプル</button>
                         <button onclick="navigateTo('detail', ${product.id})" class="btn btn-primary btn-small">詳細</button>
                     </div>
