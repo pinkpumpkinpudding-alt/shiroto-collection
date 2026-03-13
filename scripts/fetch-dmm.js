@@ -237,7 +237,7 @@ function mergeProducts(existingProducts, newProducts) {
 
 async function main() {
   const allItems = [];
-  const pages = 1000; // 100件 × 10 = 最大1000件取得
+  const pages = 1000; // 30件 × 10 = 最大1000件取得
 
   for (let i = 0; i < pages; i++) {
     const offset = i * 100 + 1;
