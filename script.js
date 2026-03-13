@@ -11,21 +11,19 @@ const FANZA_BASE_URL = `https://al.dmm.co.jp/?lurl=https%3A%2F%2Fwww.dmm.co.jp%2
 const productsData = [
     {
         id: 1,
-        title: 'Do you like beautiful women？5か国語以上を話せる美スタイル現役通訳 国仲ありな AV Debut！',
+      title: 'Do you like beautiful women？5か国語以上を話せる美スタイル現役通訳 国仲ありな AV Debut！',
         genre: 'newcomer',
         tags: ["新人","初撮り"],
         description: 'スタイル抜群スレンダー系の美女',
-        longDescription: '五か国語以上を話せる美人通訳さんがAV出演！
+        llongDescription: `五か国語以上を話せる美人通訳さんがAV出演！
 明るい性格と笑顔で観光地のツアーガイドとしても活躍！
-日常会話はもちろん、「チンポ」も様々な言語で通訳可能！
-しかも脱いだら海外モデル並みの美ボディだった！
+日常会話はもちろん、様々な言語で通訳可能！
 
 美クビレをビクビク振る合わせたボディランゲージ絶頂SEX！
 外人並みのデカチンに思わずグッドリアクション！
 世界縦断するグローバルな美脚ぱっくり激ピス性交！
-業界初！？の多言語セックスが丸見え世界仰天！
 
-AV業界で最も世界に通用する女優が誕生！',
+AV業界で最も世界に通用する女優が誕生！`,
         ranking: 1,
         isNew: true
     },
