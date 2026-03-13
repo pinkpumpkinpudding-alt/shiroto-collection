@@ -391,17 +391,18 @@ function renderProductDetail(productId) {
         `;
 
     const sampleHtml = product.sampleVideoUrl
-        ? `
-            <video controls playsinline style="width:100%; max-height:420px; border-radius:12px;">
-                <source src="${product.sampleVideoUrl}" type="video/mp4">
-            </video>
-          `
-        : `
-            <button onclick="window.open('${getProductLink(product)}', '_blank')" class="sample-video-btn">
-                <span>▶</span>
-                <span>サンプル動画を見る</span>
-            </button>
-          `;
+    ? `
+        <a href="${product.sampleVideoUrl}" target="_blank" rel="noopener noreferrer" class="sample-video-btn">
+            <span>▶</span>
+            <span>サンプル動画を見る</span>
+        </a>
+      `
+    : `
+        <a href="${getProductLink(product)}" target="_blank" rel="noopener noreferrer" class="sample-video-btn">
+            <span>▶</span>
+            <span>FANZAでサンプルを見る</span>
+        </a>
+      `;
 
     container.innerHTML = `
         <div class="product-detail-media">
