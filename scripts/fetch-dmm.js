@@ -51,9 +51,9 @@ function mapGenre(item) {
     item.comment || ''
   ].join(' ');
 
-  if (/新人|初撮り|デビュー/i.test(text)) return 'newcomer';
-  if (/素人/i.test(text)) return 'amateur';
-  if (/清楚|ナチュラル/i.test(text)) return 'clean';
+  if (/新人|初撮り|デビュー|初出演/i.test(text)) return 'newcomer';
+  if (/素人|応募素人|一般人/i.test(text)) return 'amateur';
+  if (/清楚|ナチュラル|初々しい/i.test(text)) return 'clean';
   if (/ドキュメンタリー/i.test(text)) return 'documentary';
   if (/日常/i.test(text)) return 'daily';
   if (/彼女|カップル/i.test(text)) return 'couple';
@@ -82,84 +82,6 @@ function buildFallbackDescription(item, genre, tags) {
 
   return `${title}。${actressText}${tagText}`.trim();
 }
-
-function normalizeItem(item, index) {
-  const imageUrl =
-    item.imageURL?.large ||
-    item.imageURL?.list ||
-    item.imageURL?.small ||
-    '';
-
-  const sampleVideoUrl =
-    item.sampleMovieURL?.size_720_480 ||
-    item.sampleMovieURL?.size_644_414 ||
-    item.sampleMovieURL?.pc?.flag ||
-    '';
-
-  const fanzaUrl = item.URL || '';
-  const genre = mapGenre(item);
-  const tags = buildTags(item);
-
-  const rawComment = stripHtml(item.comment || '');
-  const fallbackText = buildFallbackDescription(item, genre, tags);
-
-  const description = rawComment
-    ? rawComment.slice(0, 80)
-    : fallbackText.slice(0, 80);
-
-  const longDescription = rawComment || fallbackText;
-  const galleryImages =
-  item.sampleImageURL?.sample_l?.image ||
-  item.sampleImageURL?.sample_s?.image ||
-  [];
-
-  return {
-  id: index + 1,
-  contentId: item.content_id || '',
-  title: item.title || 'タイトル未設定',
-  genre,
-  tags,
-  description,
-  longDescription,
-  ranking: index + 1,
-  isNew: true,
-  imageUrl,
-  galleryImages,
-  sampleVideoUrl,
-  fanzaUrl,
-  affiliateUrl: fanzaUrl,
-  releaseDate: item.date || ''
-};
-
-async function main() {
-  const allItems = [];
-  const pages = 5;
-
-for (let i = 0; i < pages; i++) {
-  const offset = i * 100 + 1;
-  console.log(`Fetching offset=${offset}`);
-  const items = await fetchItems({ hits: 100, offset });
-  allItems.push(...items);
-
-  if (items.length < 100) break;
-}
-
-console.log(JSON.stringify(allItems[0], null, 2));
-
- const filteredItems = allItems.filter(shouldKeepItem);
-const normalized = filteredItems.map((item, index) => normalizeItem(item, index));
-
-  const outputPath = path.join(process.cwd(), 'data', 'products.json');
-  fs.mkdirSync(path.dirname(outputPath), { recursive: true });
-  fs.writeFileSync(outputPath, JSON.stringify(normalized, null, 2), 'utf8');
-
-  console.log(`Saved ${normalized.length} products to ${outputPath}`);
-}
-
-main().catch(err => {
-  console.error(err);
-  process.exit(1);
-});
 
 function shouldKeepItem(item) {
   const title = (item.title || '').toLowerCase();
@@ -203,3 +125,81 @@ function shouldKeepItem(item) {
 
   return hasInclude && !hasExclude;
 }
+
+function normalizeItem(item, index) {
+  const imageUrl =
+    item.imageURL?.large ||
+    item.imageURL?.list ||
+    item.imageURL?.small ||
+    '';
+
+  const galleryImages =
+    item.sampleImageURL?.sample_l?.image ||
+    item.sampleImageURL?.sample_s?.image ||
+    [];
+
+  const sampleVideoUrl =
+    item.sampleMovieURL?.size_720_480 ||
+    item.sampleMovieURL?.size_644_414 ||
+    item.sampleMovieURL?.pc?.flag ||
+    '';
+
+  const fanzaUrl = item.URL || '';
+  const genre = mapGenre(item);
+  const tags = buildTags(item);
+
+  const rawComment = stripHtml(item.comment || '');
+  const fallbackText = buildFallbackDescription(item, genre, tags);
+
+  const description = rawComment
+    ? rawComment.slice(0, 80)
+    : fallbackText.slice(0, 80);
+
+  const longDescription = rawComment || fallbackText;
+
+  return {
+    id: index + 1,
+    contentId: item.content_id || '',
+    title: item.title || 'タイトル未設定',
+    genre,
+    tags,
+    description,
+    longDescription,
+    ranking: index + 1,
+    isNew: true,
+    imageUrl,
+    galleryImages,
+    sampleVideoUrl,
+    fanzaUrl,
+    affiliateUrl: fanzaUrl,
+    releaseDate: item.date || ''
+  };
+}
+
+async function main() {
+  const allItems = [];
+  const pages = 5; // まずは500件
+
+  for (let i = 0; i < pages; i++) {
+    const offset = i * 100 + 1;
+    console.log(`Fetching offset=${offset}`);
+    const items = await fetchItems({ hits: 100, offset });
+    allItems.push(...items);
+
+    if (items.length < 100) break;
+  }
+
+  const filteredItems = allItems.filter(shouldKeepItem);
+  const normalized = filteredItems.map((item, index) => normalizeItem(item, index));
+
+  const outputPath = path.join(process.cwd(), 'data', 'products.json');
+  fs.mkdirSync(path.dirname(outputPath), { recursive: true });
+  fs.writeFileSync(outputPath, JSON.stringify(normalized, null, 2), 'utf8');
+
+  console.log(`Saved ${normalized.length} products to ${outputPath}`);
+}
+
+main().catch(err => {
+  console.error(err);
+  process.exit(1);
+});
