@@ -140,7 +140,8 @@ async function main() {
     if (items.length < 100) break;
   }
 
-  const normalized = allItems.map((item, index) => normalizeItem(item, index));
+ const filteredItems = allItems.filter(shouldKeepItem);
+const normalized = filteredItems.map((item, index) => normalizeItem(item, index));
 
   const outputPath = path.join(process.cwd(), 'data', 'products.json');
   fs.mkdirSync(path.dirname(outputPath), { recursive: true });
