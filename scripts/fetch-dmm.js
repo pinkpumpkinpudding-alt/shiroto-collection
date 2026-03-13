@@ -108,24 +108,28 @@ function normalizeItem(item, index) {
     : fallbackText.slice(0, 80);
 
   const longDescription = rawComment || fallbackText;
+  const galleryImages =
+  item.sampleImageURL?.sample_l?.image ||
+  item.sampleImageURL?.sample_s?.image ||
+  [];
 
   return {
-    id: index + 1,
-    contentId: item.content_id || '',
-    title: item.title || 'タイトル未設定',
-    genre,
-    tags,
-    description,
-    longDescription,
-    ranking: index + 1,
-    isNew: true,
-    imageUrl,
-    sampleVideoUrl,
-    fanzaUrl,
-    affiliateUrl: fanzaUrl,
-    releaseDate: item.date || ''
-  };
-}
+  id: index + 1,
+  contentId: item.content_id || '',
+  title: item.title || 'タイトル未設定',
+  genre,
+  tags,
+  description,
+  longDescription,
+  ranking: index + 1,
+  isNew: true,
+  imageUrl,
+  galleryImages,
+  sampleVideoUrl,
+  fanzaUrl,
+  affiliateUrl: fanzaUrl,
+  releaseDate: item.date || ''
+};
 
 async function main() {
   const allItems = [];
