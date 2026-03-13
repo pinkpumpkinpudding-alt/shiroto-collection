@@ -6,6 +6,22 @@ const FANZA_BASE_URL = `https://al.dmm.co.jp/?lurl=https%3A%2F%2Fwww.dmm.co.jp%2
 
 let productsData = [];
 
+async function loadProducts() {
+    try {
+        const res = await fetch('./data/products.json');
+        productsData = await res.json();
+
+        console.log("Products loaded:", productsData.length);
+
+        renderFeaturedCarousel();
+        renderTop5Ranking();
+        renderNewProducts();
+        renderProductsList();
+    } catch (error) {
+        console.error("Failed to load products:", error);
+    }
+}
+
 // ========================================
 // 外部JSON読み込み
 // ========================================
@@ -42,18 +58,15 @@ const genreMap = {
 // ========================================
 // ページロード時の初期化
 // ========================================
-document.addEventListener('DOMContentLoaded', async function () {
-    await loadProducts();
-
+document.addEventListener('DOMContentLoaded', function () {
     initAgeVerification();
     initHamburgerMenu();
-    renderFeaturedCarousel();
-    renderTop5Ranking();
-    renderNewProducts();
     initFilters();
     initFAQ();
     initTabs();
     navigateTo('home');
+
+    loadProducts();
 });
 
 // ========================================
