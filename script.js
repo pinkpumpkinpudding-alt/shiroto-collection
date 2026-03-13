@@ -500,8 +500,18 @@ function renderRelatedProducts(currentProduct) {
     if (!container) return;
 
     const related = productsData
-        .filter(p => p.id !== currentProduct.id && p.genre === currentProduct.genre)
-        .slice(0, 6);
+        .filter(p => {
+            if (p.id === currentProduct.id) return false;
+
+            const sameGenre = p.genre === currentProduct.genre;
+
+            const sameTag = (p.tags || []).some(tag =>
+                (currentProduct.tags || []).includes(tag)
+            );
+
+            return sameGenre || sameTag;
+        })
+        .slice(0, 8);
 
     container.innerHTML = related.map(product => createProductCard(product)).join('');
 }
