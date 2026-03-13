@@ -131,14 +131,16 @@ async function main() {
   const allItems = [];
   const pages = 5;
 
-  for (let i = 0; i < pages; i++) {
-    const offset = i * 100 + 1;
-    console.log(`Fetching offset=${offset}`);
-    const items = await fetchItems({ hits: 100, offset });
-    allItems.push(...items);
+for (let i = 0; i < pages; i++) {
+  const offset = i * 100 + 1;
+  console.log(`Fetching offset=${offset}`);
+  const items = await fetchItems({ hits: 100, offset });
+  allItems.push(...items);
 
-    if (items.length < 100) break;
-  }
+  if (items.length < 100) break;
+}
+
+console.log(JSON.stringify(allItems[0], null, 2));
 
  const filteredItems = allItems.filter(shouldKeepItem);
 const normalized = filteredItems.map((item, index) => normalizeItem(item, index));
