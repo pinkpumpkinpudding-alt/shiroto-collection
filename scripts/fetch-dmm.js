@@ -153,3 +153,46 @@ main().catch(err => {
   console.error(err);
   process.exit(1);
 });
+
+function shouldKeepItem(item) {
+  const title = (item.title || '').toLowerCase();
+  const genres = (item.iteminfo?.genre || []).map(g => (g.name || '').toLowerCase());
+  const text = [title, ...genres].join(' ');
+
+  const includeKeywords = [
+    '新人',
+    '素人',
+    '初撮り',
+    'デビュー',
+    '初作品',
+    '初出演'
+  ];
+
+  const excludeKeywords = [
+    'vr',
+    'ハイクオリティvr',
+    'best',
+    'ベスト',
+    '総集編',
+    '4時間',
+    '8時間',
+    '16時間',
+    '巨乳',
+    '人妻',
+    '熟女',
+    '痴女',
+    'ntr',
+    '寝取られ',
+    'ニューハーフ',
+    '男の娘',
+    'フェラ',
+    '中出し',
+    '乱交',
+    '童貞'
+  ];
+
+  const hasInclude = includeKeywords.some(keyword => text.includes(keyword.toLowerCase()));
+  const hasExclude = excludeKeywords.some(keyword => text.includes(keyword.toLowerCase()));
+
+  return hasInclude && !hasExclude;
+}
