@@ -475,6 +475,7 @@ function renderProductDetail(productId) {
 
     renderReviews();
     renderRelatedProducts(product);
+    renderDetailRanking();
 }
 
 function renderReviews() {
