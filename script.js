@@ -11,11 +11,22 @@ const FANZA_BASE_URL = `https://al.dmm.co.jp/?lurl=https%3A%2F%2Fwww.dmm.co.jp%2
 const productsData = [
     {
         id: 1,
-        title: 'はじめての撮影 Vol.1',
+        title: 'Do you like beautiful women？5か国語以上を話せる美スタイル現役通訳 国仲ありな AV Debut！
+',
         genre: 'newcomer',
-        tags: ['新人', '初撮り', 'ナチュラル'],
-        description: 'カメラの前に初めて立つ、緊張と素顔。自然体の魅力がつまった一作。',
-        longDescription: 'カメラの前に初めて立つ緊張感と、そこから見える素顔の魅力。演技ではない、本物のリアクションと表情をお楽しみいただけます。',
+        tags: ["新人","初撮り"],
+        description: 'スタイル抜群スレンダー系の美女',
+        longDescription: '五か国語以上を話せる美人通訳さんがAV出演！
+明るい性格と笑顔で観光地のツアーガイドとしても活躍！
+日常会話はもちろん、「チンポ」も様々な言語で通訳可能！
+しかも脱いだら海外モデル並みの美ボディだった！
+
+美クビレをビクビク振る合わせたボディランゲージ絶頂SEX！
+外人並みのデカチンに思わずグッドリアクション！
+世界縦断するグローバルな美脚ぱっくり激ピス性交！
+業界初！？の多言語セックスが丸見え世界仰天！
+
+AV業界で最も世界に通用する女優が誕生！',
         ranking: 1,
         isNew: true
     },
@@ -26,7 +37,7 @@ const productsData = [
         tags: ['素人', '日常系', '清楚'],
         description: 'どこにでもいそうな親しみやすさと、隠された魅力のギャップが見どころ。',
         longDescription: '日常の中にいそうな親しみやすい雰囲気と、撮影を通じて見えてくる新たな一面。自然体の魅力を大切にした作品です。',
-        ranking: 3,
+        ranking: 1,
         isNew: true
     },
     {
