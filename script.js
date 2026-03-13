@@ -424,6 +424,10 @@ function renderProductDetail(productId) {
             <div class="product-tags">
                 ${(product.tags || []).map(tag => `<span class="tag">${escapeHtml(tag)}</span>`).join('')}
             </div>
+            <div class="related-ranking">
+<h3>今人気の作品</h3>
+<div id="detail-ranking"></div>
+</div>
             <h1 class="product-detail-title">${escapeHtml(product.title || '')}</h1>
             <p class="product-detail-desc">${escapeHtml(product.longDescription || product.description || '')}</p>
 
@@ -647,3 +651,16 @@ function smoothScrollTo(elementId) {
 
 console.log('ShinStar Selection - Initialized');
 console.log(`Current loaded products: ${productsData.length}`);
+
+function renderDetailRanking() {
+
+const container = document.getElementById("detail-ranking");
+if (!container) return;
+
+const ranking = [...productsData]
+.sort((a,b)=> (a.ranking ?? 9999)-(b.ranking ?? 9999))
+.slice(0,5);
+
+container.innerHTML = ranking.map(p=>createProductCard(p)).join("");
+
+}
