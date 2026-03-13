@@ -10,7 +10,7 @@ if (!API_ID || !AFFILIATE_ID) {
 
 const ENDPOINT = 'https://api.dmm.com/affiliate/v3/ItemList';
 
-async function fetchItems({ hits = 100, offset = 1, keyword = '' } = {}) {
+async function fetchItems({ hits = 100, offset = 1 } = {}) {
   const params = new URLSearchParams({
     api_id: API_ID,
     affiliate_id: AFFILIATE_ID,
@@ -22,10 +22,6 @@ async function fetchItems({ hits = 100, offset = 1, keyword = '' } = {}) {
     sort: 'date',
     output: 'json'
   });
-
-  if (keyword) {
-    params.set('keyword', keyword);
-  }
 
   const url = `${ENDPOINT}?${params.toString()}`;
   const res = await fetch(url);
@@ -44,9 +40,13 @@ async function fetchItems({ hits = 100, offset = 1, keyword = '' } = {}) {
   return json.result.items;
 }
 
+function stripHtml(text = '') {
+  return String(text).replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
+}
+
 function mapGenre(item) {
   const text = [
-    item.iteminfo?.genre?.map(g => g.name).join(' '),
+    item.iteminfo?.genre?.map(g => g.name).join(' ') || '',
     item.title || '',
     item.comment || ''
   ].join(' ');
@@ -62,8 +62,8 @@ function mapGenre(item) {
 
 function buildTags(item) {
   const tags = new Set();
-
   const genreNames = item.iteminfo?.genre?.map(g => g.name) || [];
+
   genreNames.slice(0, 3).forEach(name => tags.add(name));
 
   const title = item.title || '';
@@ -72,6 +72,15 @@ function buildTags(item) {
   if (/清楚/i.test(title)) tags.add('清楚');
 
   return [...tags].slice(0, 3);
+}
+
+function buildFallbackDescription(item, genre, tags) {
+  const title = stripHtml(item.title || '');
+  const actressNames = item.iteminfo?.actress?.map(a => a.name).filter(Boolean) || [];
+  const actressText = actressNames.length ? `${actressNames.join(' / ')}出演。` : '';
+  const tagText = tags.length ? `${tags.join('・')}系の注目作品。` : '注目作品。';
+
+  return `${title}。${actressText}${tagText}`.trim();
 }
 
 function normalizeItem(item, index) {
@@ -88,21 +97,24 @@ function normalizeItem(item, index) {
     '';
 
   const fanzaUrl = item.URL || '';
+  const genre = mapGenre(item);
+  const tags = buildTags(item);
 
-  const description =
-    item.comment?.replace(/<[^>]*>/g, '').slice(0, 80) ||
-    '作品説明は準備中です。';
+  const rawComment = stripHtml(item.comment || '');
+  const fallbackText = buildFallbackDescription(item, genre, tags);
 
-  const longDescription =
-    item.comment?.replace(/<[^>]*>/g, '') ||
-    '詳細説明は準備中です。';
+  const description = rawComment
+    ? rawComment.slice(0, 80)
+    : fallbackText.slice(0, 80);
+
+  const longDescription = rawComment || fallbackText;
 
   return {
     id: index + 1,
     contentId: item.content_id || '',
     title: item.title || 'タイトル未設定',
-    genre: mapGenre(item),
-    tags: buildTags(item),
+    genre,
+    tags,
     description,
     longDescription,
     ranking: index + 1,
@@ -110,13 +122,14 @@ function normalizeItem(item, index) {
     imageUrl,
     sampleVideoUrl,
     fanzaUrl,
-    affiliateUrl: fanzaUrl
+    affiliateUrl: fanzaUrl,
+    releaseDate: item.date || ''
   };
 }
 
 async function main() {
   const allItems = [];
-  const pages = 5; // 100件×5ページ = 500件。まずは500件で開始
+  const pages = 5;
 
   for (let i = 0; i < pages; i++) {
     const offset = i * 100 + 1;
@@ -124,9 +137,7 @@ async function main() {
     const items = await fetchItems({ hits: 100, offset });
     allItems.push(...items);
 
-    if (items.length < 100) {
-      break;
-    }
+    if (items.length < 100) break;
   }
 
   const normalized = allItems.map((item, index) => normalizeItem(item, index));
