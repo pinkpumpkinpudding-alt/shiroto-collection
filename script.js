@@ -1,7 +1,7 @@
 // ========================================
 // グローバル変数
 // ========================================
-const AFFILIATE_ID = 'YOUR-AFFILIATE-ID-HERE'; // 使わなくてもOK。予備。
+const AFFILIATE_ID = 'miumiudayo-003'; // 使わなくてもOK。予備。
 const FANZA_BASE_URL = `https://al.dmm.co.jp/?lurl=https%3A%2F%2Fwww.dmm.co.jp%2Fadult%2F&af_id=${AFFILIATE_ID}&ch=toolbar&ch_id=link`;
 
 let productsData = [];
