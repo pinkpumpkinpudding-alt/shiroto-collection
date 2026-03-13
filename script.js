@@ -654,14 +654,32 @@ console.log('ShinStar Selection - Initialized');
 console.log(`Current loaded products: ${productsData.length}`);
 
 function renderDetailRanking() {
+    const container = document.getElementById("detail-ranking");
+    if (!container) return;
 
-const container = document.getElementById("detail-ranking");
-if (!container) return;
+    const ranking = [...productsData]
+        .filter(p => p.id !== Number(document.getElementById('detail-breadcrumb')?.dataset?.productId))
+        .sort((a, b) => (a.ranking ?? 9999) - (b.ranking ?? 9999))
+        .slice(0, 4);
 
-const ranking = [...productsData]
-.sort((a,b)=> (a.ranking ?? 9999)-(b.ranking ?? 9999))
-.slice(0,5);
+    container.innerHTML = ranking.map((product, index) => {
+        const imageHtml = getProductImageHtml(product);
 
-container.innerHTML = ranking.map(p=>createProductCard(p)).join("");
-
+        return `
+            <div class="mini-ranking-card">
+                <div class="mini-ranking-badge">${index + 1}</div>
+                <div class="mini-ranking-image">
+                    ${imageHtml}
+                </div>
+                <div class="mini-ranking-content">
+                    <h4 class="mini-ranking-title">${escapeHtml(product.title || '')}</h4>
+                    <p class="mini-ranking-desc">${escapeHtml(product.description || '')}</p>
+                    <div class="mini-ranking-buttons">
+                        <button onclick="window.open('${getProductLink(product)}', '_blank')" class="btn btn-outline btn-small">サンプル</button>
+                        <button onclick="navigateTo('detail', ${product.id})" class="btn btn-primary btn-small">詳細</button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join("");
 }
