@@ -126,12 +126,13 @@ function shouldKeepItem(item) {
   return hasInclude && !hasExclude;
 }
 
-function normalizeItem(item, index) {
-  const imageUrl =
-    item.imageURL?.large ||
-    item.imageURL?.list ||
-    item.imageURL?.small ||
-    '';
+const sampleVideoUrl =
+  item.sampleMovieURL?.size_720_480 ||
+  item.sampleMovieURL?.size_644_414 ||
+  item.sampleMovieURL?.size_560_360 ||
+  item.sampleMovieURL?.pc?.flag ||
+  item.sampleMovieURL?.sp?.flag ||
+  '';
 
   const galleryImages =
     item.sampleImageURL?.sample_l?.image ||
