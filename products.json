@@ -1,1 +1,86 @@
-[]
+[
+  {
+    "id": 1,
+    "title": "ナチュラルな雰囲気が魅力の注目新人レビュー",
+    "image": "https://picsum.photos/seed/sample1/900/600",
+    "description": "派手すぎない空気感と見やすさを重視した、レビュー記事向きのサンプル作品です。まずはサイトの表示確認用として使えます。",
+    "actress": "サンプル出演者A",
+    "maker": "サンプルメーカー",
+    "label": "サンプルレーベル",
+    "category": "新人デビュー",
+    "code": "SAMPLE-001",
+    "releaseDate": "2026-03-20",
+    "duration": "120分",
+    "price": "¥1,980",
+    "rating": 95,
+    "affiliateLink": "https://www.dmm.co.jp/",
+    "gallery": [
+      "https://picsum.photos/seed/sample1a/800/500",
+      "https://picsum.photos/seed/sample1b/800/500",
+      "https://picsum.photos/seed/sample1c/800/500",
+      "https://picsum.photos/seed/sample1d/800/500"
+    ],
+    "tags": ["新人", "ナチュラル", "注目作"],
+    "points": [
+      "自然な雰囲気で記事にしやすい",
+      "初見でも見やすい構成",
+      "導線テスト用のサンプルとして使いやすい"
+    ]
+  },
+  {
+    "id": 2,
+    "title": "清潔感のあるレビュー向けサンプル作品",
+    "image": "https://picsum.photos/seed/sample2/900/600",
+    "description": "落ち着いた印象で、ブログ型の紹介ページに合わせやすいサンプルデータです。カテゴリ表示やランキング確認にも使えます。",
+    "actress": "サンプル出演者B",
+    "maker": "サンプルメーカー",
+    "label": "サンプルレーベル",
+    "category": "清楚系",
+    "code": "SAMPLE-002",
+    "releaseDate": "2026-03-18",
+    "duration": "110分",
+    "price": "¥1,780",
+    "rating": 90,
+    "affiliateLink": "https://www.dmm.co.jp/",
+    "gallery": [
+      "https://picsum.photos/seed/sample2a/800/500",
+      "https://picsum.photos/seed/sample2b/800/500",
+      "https://picsum.photos/seed/sample2c/800/500",
+      "https://picsum.photos/seed/sample2d/800/500"
+    ],
+    "tags": ["清楚系", "レビュー向け", "新着"],
+    "points": [
+      "サイドバーとの相性が良い",
+      "一覧カード表示の確認に使いやすい",
+      "詳細ページの見え方を確認しやすい"
+    ]
+  },
+  {
+    "id": 3,
+    "title": "ブログ導線テストに使える定番サンプル",
+    "image": "https://picsum.photos/seed/sample3/900/600",
+    "description": "人気記事、タグ、関連記事の表示確認用として使えるサンプルデータです。構成テスト用にちょうどいい内容です。",
+    "actress": "サンプル出演者C",
+    "maker": "サンプルメーカー",
+    "label": "サンプルレーベル",
+    "category": "素人系",
+    "code": "SAMPLE-003",
+    "releaseDate": "2026-03-15",
+    "duration": "130分",
+    "price": "¥2,180",
+    "rating": 88,
+    "affiliateLink": "https://www.dmm.co.jp/",
+    "gallery": [
+      "https://picsum.photos/seed/sample3a/800/500",
+      "https://picsum.photos/seed/sample3b/800/500",
+      "https://picsum.photos/seed/sample3c/800/500",
+      "https://picsum.photos/seed/sample3d/800/500"
+    ],
+    "tags": ["素人系", "定番", "人気"],
+    "points": [
+      "トップの一覧表示テスト向き",
+      "人気ランキングの表示確認向き",
+      "CTAボタンの配置確認向き"
+    ]
+  }
+]
