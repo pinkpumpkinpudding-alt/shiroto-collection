@@ -1,9 +1,9 @@
-name: Update DMM Products
+name: Update DMM products
 
 on:
-  workflow_dispatch:
   schedule:
-    - cron: '0 */6 * * *'
+    - cron: "0 */6 * * *"
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -19,7 +19,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: 20
 
       - name: Run fetch script
         env:
@@ -27,10 +27,10 @@ jobs:
           DMM_AFFILIATE_ID: ${{ secrets.DMM_AFFILIATE_ID }}
         run: node scripts/fetch-dmm.js
 
-      - name: Commit updated products
+      - name: Commit and push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add data/products.json
+          git add products.json
           git diff --cached --quiet || git commit -m "Update DMM products"
           git push
