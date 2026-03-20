@@ -1,268 +1,118 @@
-const fs = require('fs');
-const path = require('path');
+const fs = require("fs");
+const path = require("path");
 
 const API_ID = process.env.DMM_API_ID;
 const AFFILIATE_ID = process.env.DMM_AFFILIATE_ID;
+const SERVICE = process.env.DMM_SERVICE || "digital";
+const FLOOR = process.env.DMM_FLOOR || "videoa";
+const HITS = process.env.DMM_HITS || "30";
+const SORT = process.env.DMM_SORT || "date";
 
-if (!API_ID || !AFFILIATE_ID) {
-  throw new Error('DMM_API_ID or DMM_AFFILIATE_ID is not set.');
+function pickImage(item) {
+  return (
+    item?.imageURL?.large ||
+    item?.imageURL?.list ||
+    item?.imageURL?.small ||
+    item?.sampleImageURL?.sample_l?.image?.[0] ||
+    item?.sampleImageURL?.sample_s?.image?.[0] ||
+    ""
+  );
 }
 
-const ENDPOINT = 'https://api.dmm.com/affiliate/v3/ItemList';
-const OUTPUT_PATH = path.join(process.cwd(), 'data', 'products.json');
+function pickGallery(item) {
+  const images = [];
 
-async function fetchItems({ hits = 100, offset = 1 } = {}) {
-  const params = new URLSearchParams({
-    api_id: API_ID,
-    affiliate_id: AFFILIATE_ID,
-    site: 'FANZA',
-    service: 'digital',
-    floor: 'videoa',
-    hits: String(hits),
-    offset: String(offset),
-    sort: 'date',
-    output: 'json'
+  if (item?.sampleImageURL?.sample_l?.image && Array.isArray(item.sampleImageURL.sample_l.image)) {
+    images.push(...item.sampleImageURL.sample_l.image);
+  }
+
+  if (!images.length) {
+    const cover = pickImage(item);
+    if (cover) images.push(cover);
+  }
+
+  return images.slice(0, 4);
+}
+
+function pickNames(item, key) {
+  const list = item?.iteminfo?.[key];
+  if (!Array.isArray(list) || !list.length) return "";
+  return list.map((v) => v.name).filter(Boolean).join(" / ");
+}
+
+async function fetchProducts() {
+  if (!API_ID || !AFFILIATE_ID) {
+    throw new Error("DMM_API_ID または DMM_AFFILIATE_ID が未設定です。");
+  }
+
+  const endpoint = new URL("https://api.dmm.com/affiliate/v3/ItemList");
+  endpoint.searchParams.set("api_id", API_ID);
+  endpoint.searchParams.set("affiliate_id", AFFILIATE_ID);
+  endpoint.searchParams.set("site", "FANZA");
+  endpoint.searchParams.set("service", SERVICE);
+  endpoint.searchParams.set("floor", FLOOR);
+  endpoint.searchParams.set("hits", HITS);
+  endpoint.searchParams.set("sort", SORT);
+  endpoint.searchParams.set("output", "json");
+
+  const response = await fetch(endpoint.toString(), {
+    headers: {
+      "User-Agent": "shiroto-collection-bot/1.0"
+    }
   });
 
-  const url = `${ENDPOINT}?${params.toString()}`;
-  const res = await fetch(url);
-
-  if (!res.ok) {
-    throw new Error(`DMM API request failed: ${res.status} ${res.statusText}`);
+  if (!response.ok) {
+    throw new Error(`APIリクエスト失敗: ${response.status}`);
   }
 
-  const json = await res.json();
+  const data = await response.json();
 
-  if (!json.result || !Array.isArray(json.result.items)) {
-    console.error(JSON.stringify(json, null, 2));
-    throw new Error('Invalid DMM API response');
+  const items = data?.result?.items;
+  if (!Array.isArray(items) || !items.length) {
+    console.error(JSON.stringify(data, null, 2));
+    throw new Error("APIから商品が取得できませんでした。");
   }
 
-  return json.result.items;
-}
-
-function stripHtml(text = '') {
-  return String(text)
-    .replace(/<[^>]*>/g, '')
-    .replace(/\s+/g, ' ')
-    .trim();
-}
-
-function mapGenre(item) {
-  const text = [
-    item.iteminfo?.genre?.map(g => g.name).join(' ') || '',
-    item.title || '',
-    item.comment || ''
-  ].join(' ');
-
-  if (/新人|初撮り|デビュー|初出演/i.test(text)) return 'newcomer';
-  if (/素人|応募素人|一般人/i.test(text)) return 'amateur';
-  if (/清楚|ナチュラル|初々しい/i.test(text)) return 'clean';
-  if (/ドキュメンタリー/i.test(text)) return 'documentary';
-  if (/日常/i.test(text)) return 'daily';
-  if (/彼女|カップル/i.test(text)) return 'couple';
-  return 'natural';
-}
-
-function buildTags(item) {
-  const tags = new Set();
-  const genreNames = item.iteminfo?.genre?.map(g => g.name) || [];
-
-  genreNames.slice(0, 3).forEach(name => tags.add(name));
-
-  const title = item.title || '';
-  if (/新人|デビュー|初撮り/i.test(title)) tags.add('新人');
-  if (/素人/i.test(title)) tags.add('素人');
-  if (/清楚/i.test(title)) tags.add('清楚');
-
-  return [...tags].slice(0, 3);
-}
-
-function buildFallbackDescription(item, genre, tags) {
-  const title = stripHtml(item.title || '');
-  const actressNames = item.iteminfo?.actress?.map(a => a.name).filter(Boolean) || [];
-  const actressText = actressNames.length ? `${actressNames.join(' / ')}出演。` : '';
-  const tagText = tags.length ? `${tags.join('・')}系の注目作品。` : '注目作品。';
-
-  return `${title}。${actressText}${tagText}`.trim();
-}
-
-function shouldKeepItem(item) {
-  const title = (item.title || '').toLowerCase();
-  const genres = (item.iteminfo?.genre || []).map(g => (g.name || '').toLowerCase());
-  const text = [title, ...genres].join(' ');
-
-  const includeKeywords = [
-    '新人',
-    '素人',
-    '初撮り',
-    'デビュー',
-    '初作品',
-    '初出演'
-  ];
-
-  const excludeKeywords = [
-    'vr',
-    'ハイクオリティvr',
-    'best',
-    'ベスト',
-    '総集編',
-    '4時間',
-    '8時間',
-    '16時間',
-    '人妻',
-    '熟女',
-    '痴女',
-    'ntr',
-    '寝取られ',
-    'ニューハーフ',
-    '男の娘',
-    '乱交'
-  ];
-
-  const hasInclude = includeKeywords.some(keyword => text.includes(keyword.toLowerCase()));
-  const hasExclude = excludeKeywords.some(keyword => text.includes(keyword.toLowerCase()));
-
-  return hasInclude && !hasExclude;
-}
-
-function normalizeGalleryImages(item) {
-  const largeImages = Array.isArray(item.sampleImageURL?.sample_l?.image)
-    ? item.sampleImageURL.sample_l.image
-    : [];
-
-  const smallImages = Array.isArray(item.sampleImageURL?.sample_s?.image)
-    ? item.sampleImageURL.sample_s.image
-    : [];
-
-  const rawImages = largeImages.length ? largeImages : smallImages;
-
-  return rawImages
-    .filter(Boolean)
-    .map(url => String(url).trim())
-    .filter((url, index, arr) => arr.indexOf(url) === index);
-}
-
-function normalizeItem(item) {
-  const imageUrl =
-    item.imageURL?.large ||
-    item.imageURL?.list ||
-    item.imageURL?.small ||
-    '';
-
-  const galleryImages = normalizeGalleryImages(item);
-
-  const sampleVideoUrl =
-    item.sampleMovieURL?.size_720_480 ||
-    item.sampleMovieURL?.size_644_414 ||
-    item.sampleMovieURL?.size_560_360 ||
-    item.sampleMovieURL?.pc?.flag ||
-    item.sampleMovieURL?.sp?.flag ||
-    '';
-
-  const fanzaUrl = item.URL || '';
-  const genre = mapGenre(item);
-  const tags = buildTags(item);
-
-  const rawComment = stripHtml(item.comment || '');
-  const fallbackText = buildFallbackDescription(item, genre, tags);
-
-  const description = rawComment
-    ? rawComment.slice(0, 80)
-    : fallbackText.slice(0, 80);
-
-  const longDescription = rawComment || fallbackText;
-
-  return {
-    contentId: item.content_id || '',
-    title: item.title || 'タイトル未設定',
-    genre,
-    tags,
-    description,
-    longDescription,
-    isNew: true,
-    imageUrl,
-    galleryImages,
-    sampleVideoUrl,
-    fanzaUrl,
-    affiliateUrl: fanzaUrl,
-    releaseDate: item.date || ''
-  };
-}
-
-function loadExistingProducts() {
-  try {
-    if (!fs.existsSync(OUTPUT_PATH)) return [];
-    const raw = fs.readFileSync(OUTPUT_PATH, 'utf8');
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch (error) {
-    console.error('Failed to load existing products.json:', error);
-    return [];
-  }
-}
-
-function mergeProducts(existingProducts, newProducts) {
-  const existingMap = new Map();
-
-  for (const product of existingProducts) {
-    if (product.contentId) {
-      existingMap.set(product.contentId, product);
-    }
-  }
-
-  for (const product of newProducts) {
-    if (!product.contentId) continue;
-
-    if (!existingMap.has(product.contentId)) {
-      existingMap.set(product.contentId, product);
-    }
-  }
-
-  const merged = Array.from(existingMap.values());
-
-  merged.sort((a, b) => {
-    const dateA = new Date(a.releaseDate || 0).getTime();
-    const dateB = new Date(b.releaseDate || 0).getTime();
-    return dateB - dateA;
-  });
-
-  return merged.map((product, index) => ({
-    ...product,
+  const normalized = items.map((item, index) => ({
     id: index + 1,
-    ranking: index + 1,
-    isNew: index < 30
+    title: item.title || "タイトル未設定",
+    image: pickImage(item),
+    description: item.comment || item.description || "商品説明がありません。",
+    actress: pickNames(item, "actress") || "出演者情報なし",
+    maker: pickNames(item, "maker") || "メーカー不明",
+    label: pickNames(item, "label") || "レーベル不明",
+    category: pickNames(item, "genre") || "新着商品",
+    code: item.content_id || item.product_id || item.cid || `item-${index + 1}`,
+    releaseDate: item.date || "日付不明",
+    duration: item.volume || "不明",
+    price:
+      item?.prices?.price ||
+      item?.prices?.delivery ||
+      item?.price ||
+      "価格未設定",
+    rating: 80,
+    affiliateLink:
+      item.affiliateURL ||
+      item.affiliate_url ||
+      item.URL ||
+      item.url ||
+      "#",
+    gallery: pickGallery(item),
+    tags: (item?.iteminfo?.genre || []).map((v) => v.name).filter(Boolean).slice(0, 5),
+    points: [
+      "FANZA APIから自動取得した商品です。",
+      "最新データに合わせて products.json を更新しています。",
+      "価格や配信状況は公式ページでご確認ください。"
+    ]
   }));
+
+  const filePath = path.join(process.cwd(), "products.json");
+  fs.writeFileSync(filePath, JSON.stringify(normalized, null, 2), "utf-8");
+
+  console.log(`products.json を更新しました: ${normalized.length}件`);
 }
 
-async function main() {
-  const allItems = [];
-  const pages = 30; // 50件 × 10 = 最大1000件取得
-
-  for (let i = 0; i < pages; i++) {
-    const offset = i * 100 + 1;
-    console.log(`Fetching offset=${offset}`);
-    const items = await fetchItems({ hits: 100, offset });
-    allItems.push(...items);
-
-    if (items.length < 100) break;
-  }
-
-  const filteredItems = allItems.filter(shouldKeepItem);
-  const normalizedNewProducts = filteredItems.map(normalizeItem);
-
-  const existingProducts = loadExistingProducts();
-  const mergedProducts = mergeProducts(existingProducts, normalizedNewProducts);
-
-  fs.mkdirSync(path.dirname(OUTPUT_PATH), { recursive: true });
-  fs.writeFileSync(OUTPUT_PATH, JSON.stringify(mergedProducts, null, 2), 'utf8');
-
-  console.log(`Existing products: ${existingProducts.length}`);
-  console.log(`New fetched products: ${normalizedNewProducts.length}`);
-  console.log(`Saved merged products: ${mergedProducts.length}`);
-}
-
-main().catch(err => {
-  console.error(err);
+fetchProducts().catch((error) => {
+  console.error(error);
   process.exit(1);
 });
