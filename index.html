@@ -28,13 +28,13 @@
       <div>
         <p class="mini-label">ADULT REVIEW BLOG</p>
         <h1 class="site-title">Shiroto Collection</h1>
-        <p class="site-subtitle">素人・新人系作品のレビュー＆紹介</p>
+        <p class="site-subtitle">素人・新人作品のレビューと商品紹介</p>
       </div>
       <nav class="main-nav">
-        <a href="#featured">注目記事</a>
-        <a href="#latest">新着</a>
-        <a href="#ranking">人気</a>
-        <a href="#about">初めての方へ</a>
+        <a href="#featured">注目</a>
+        <a href="#articles">記事</a>
+        <a href="#products">商品</a>
+        <a href="#detailSection">詳細</a>
       </nav>
     </div>
   </header>
@@ -42,19 +42,22 @@
   <section class="hero-section" id="featured">
     <div class="wrap hero-grid">
       <div class="hero-main">
-        <img id="heroImage" src="" alt="注目作品" />
+        <img id="heroImage" src="" alt="注目コンテンツ" />
       </div>
+
       <div class="hero-content">
-        <span class="chip hot">今週の注目</span>
+        <span class="chip hot" id="heroBadge">今週の注目</span>
         <h2 id="heroTitle">読み込み中...</h2>
         <p id="heroMeta" class="meta"></p>
         <p id="heroDesc" class="hero-desc"></p>
+
         <div class="hero-buttons">
-          <button id="heroDetailBtn" class="btn primary">レビューを見る</button>
+          <button id="heroDetailBtn" class="btn primary">詳細を見る</button>
           <a id="heroLink" href="#" target="_blank" rel="noopener noreferrer sponsored" class="btn secondary">
             FANZAで確認
           </a>
         </div>
+
         <p class="notice-text">
           ※当サイトはアフィリエイト広告を利用しています。リンク先で商品購入が行われた場合、
           報酬を受け取ることがあります。
@@ -65,33 +68,35 @@
 
   <main class="wrap main-grid">
     <section class="content-area">
-      <section class="section-block" id="latest">
+      <section class="section-block" id="articles">
         <div class="section-head">
           <div>
-            <p class="section-kicker">LATEST</p>
-            <h3>新着レビュー</h3>
+            <p class="section-kicker">ARTICLES</p>
+            <h3>特集・レビュー記事</h3>
           </div>
         </div>
-        <div id="postList" class="post-list"></div>
+        <div id="articleList" class="card-list"></div>
+      </section>
+
+      <section class="section-block" id="products">
+        <div class="section-head">
+          <div>
+            <p class="section-kicker">PRODUCTS</p>
+            <h3>新着商品</h3>
+          </div>
+        </div>
+        <div id="productList" class="card-list"></div>
       </section>
 
       <section class="section-block detail-block" id="detailSection">
-        <div id="detailContent" class="detail-content">
-          <p>作品を選ぶとここに詳細レビューが表示されます。</p>
-        </div>
-      </section>
-
-      <section class="section-block" id="about">
         <div class="section-head">
           <div>
-            <p class="section-kicker">GUIDE</p>
-            <h3>初めての方へ</h3>
+            <p class="section-kicker">DETAIL</p>
+            <h3>記事 / 商品 詳細</h3>
           </div>
         </div>
-        <div class="guide-box">
-          <p>当サイトは成人向け作品の紹介・レビューを行うサイトです。</p>
-          <p>各作品の詳細や価格、サンプル確認は公式ページからご確認ください。</p>
-          <p>18歳未満の方はご利用いただけません。</p>
+        <div id="detailContent" class="detail-content">
+          <p>ここに詳細が表示されます。</p>
         </div>
       </section>
     </section>
@@ -104,13 +109,7 @@
 
       <section class="sidebar-card">
         <h3>カテゴリ</h3>
-        <div class="tag-list">
-          <span class="tag">新人デビュー</span>
-          <span class="tag">素人系</span>
-          <span class="tag">清楚系</span>
-          <span class="tag">ナチュラル</span>
-          <span class="tag">レビュー記事</span>
-        </div>
+        <div id="categoryList" class="tag-list"></div>
       </section>
 
       <section class="sidebar-card">
