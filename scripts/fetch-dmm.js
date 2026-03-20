@@ -41,6 +41,14 @@ function pickNames(item, key) {
 }
 
 async function fetchProducts() {
+  console.log("=== DMM fetch start ===");
+  console.log("API_ID exists:", !!API_ID);
+  console.log("AFFILIATE_ID exists:", !!AFFILIATE_ID);
+  console.log("SERVICE:", SERVICE);
+  console.log("FLOOR:", FLOOR);
+  console.log("HITS:", HITS);
+  console.log("SORT:", SORT);
+
   if (!API_ID || !AFFILIATE_ID) {
     throw new Error("DMM_API_ID または DMM_AFFILIATE_ID が未設定です。");
   }
@@ -55,22 +63,32 @@ async function fetchProducts() {
   endpoint.searchParams.set("sort", SORT);
   endpoint.searchParams.set("output", "json");
 
+  console.log("Request URL:", endpoint.toString().replace(API_ID, "***API_ID***").replace(AFFILIATE_ID, "***AFFILIATE_ID***"));
+
   const response = await fetch(endpoint.toString(), {
     headers: {
       "User-Agent": "shiroto-collection-bot/1.0"
     }
   });
 
-  if (!response.ok) {
-    throw new Error(`APIリクエスト失敗: ${response.status}`);
+  console.log("Response status:", response.status);
+  console.log("Response ok:", response.ok);
+
+  const rawText = await response.text();
+  console.log("Raw response preview:", rawText.slice(0, 1500));
+
+  let data;
+  try {
+    data = JSON.parse(rawText);
+  } catch (e) {
+    throw new Error("APIの返り値がJSONではありません。レスポンスを確認してください。");
   }
 
-  const data = await response.json();
-
   const items = data?.result?.items;
+
   if (!Array.isArray(items) || !items.length) {
-    console.error(JSON.stringify(data, null, 2));
-    throw new Error("APIから商品が取得できませんでした。");
+    console.log("Parsed response:", JSON.stringify(data, null, 2));
+    throw new Error("APIから商品が取得できませんでした。result.items が空です。");
   }
 
   const normalized = items.map((item, index) => ({
@@ -110,9 +128,11 @@ async function fetchProducts() {
   fs.writeFileSync(filePath, JSON.stringify(normalized, null, 2), "utf-8");
 
   console.log(`products.json を更新しました: ${normalized.length}件`);
+  console.log("=== DMM fetch success ===");
 }
 
 fetchProducts().catch((error) => {
+  console.error("=== DMM fetch error ===");
   console.error(error);
   process.exit(1);
 });
