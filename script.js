@@ -21,6 +21,19 @@ const detailContent = document.getElementById("detailContent");
 const tagCloud = document.getElementById("tagCloud");
 const categoryList = document.getElementById("categoryList");
 
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+function isExternalUrl(value) {
+  return /^https?:\/\//i.test(String(value || "").trim());
+}
+
 function normalizeProduct(item, index) {
   return {
     id: item.id ?? index + 1,
@@ -69,6 +82,7 @@ function normalizeProduct(item, index) {
 }
 
 function normalizeArticle(item, index) {
+  const rawUrl = String(item.articleUrl || "").trim();
   return {
     id: item.id || `article-${index + 1}`,
     title: item.title || "記事タイトル未設定",
@@ -80,44 +94,41 @@ function normalizeArticle(item, index) {
     content: Array.isArray(item.content) ? item.content : [],
     relatedProductIds: Array.isArray(item.relatedProductIds) ? item.relatedProductIds : [],
     tags: Array.isArray(item.tags) ? item.tags : [],
-    articleUrl: item.articleUrl || ""
+    articleUrl: isExternalUrl(rawUrl) ? rawUrl : ""
   };
 }
 
-async function loadAllData() {
-  try {
-    const [productsRes, articlesRes] = await Promise.all([
-      fetch("./products.json", { cache: "no-store" }),
-      fetch("./data/articles.json", { cache: "no-store" })
-    ]);
-
-    const rawProducts = await productsRes.json();
-    const rawArticles = await articlesRes.json();
-
-    const productListData = Array.isArray(rawProducts) ? rawProducts : rawProducts.products || [];
-    const articleListData = Array.isArray(rawArticles) ? rawArticles : rawArticles.articles || [];
-
-    state.products = productListData.map(normalizeProduct);
-    state.articles = articleListData.map(normalizeArticle);
-
-    renderHome();
-  } catch (error) {
-    console.error(error);
-    articleList.innerHTML = `<div class="empty-box">記事データの読み込みに失敗しました。</div>`;
-    productList.innerHTML = `<div class="empty-box">商品データの読み込みに失敗しました。</div>`;
-    detailContent.innerHTML = `<div class="empty-box">詳細データの読み込みに失敗しました。</div>`;
+async function fetchJsonWithFallback(paths, fallbackValue) {
+  for (const path of paths) {
+    try {
+      const res = await fetch(path, { cache: "no-store" });
+      if (!res.ok) continue;
+      return await res.json();
+    } catch (error) {
+      console.warn(`Failed to load ${path}`, error);
+    }
   }
+  return fallbackValue;
+}
+
+async function loadAllData() {
+  const [rawProducts, rawArticles] = await Promise.all([
+    fetchJsonWithFallback(["./products.json"], []),
+    fetchJsonWithFallback(["./data/articles.json", "./articles.json"], []),
+  ]);
+
+  const productListData = Array.isArray(rawProducts) ? rawProducts : rawProducts.products || [];
+  const articleListData = Array.isArray(rawArticles) ? rawArticles : rawArticles.articles || [];
+
+  state.products = productListData.map(normalizeProduct);
+  state.articles = articleListData.map(normalizeArticle);
+
+  renderHome();
 }
 
 function renderHome() {
-  const articlesByDate = [...state.articles].sort((a, b) => {
-    return new Date(b.date).getTime() - new Date(a.date).getTime();
-  });
-
-  const productsByDate = [...state.products].sort((a, b) => {
-    return new Date(b.releaseDate).getTime() - new Date(a.releaseDate).getTime();
-  });
-
+  const articlesByDate = [...state.articles].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  const productsByDate = [...state.products].sort((a, b) => new Date(b.releaseDate).getTime() - new Date(a.releaseDate).getTime());
   const productsByRating = [...state.products].sort((a, b) => b.rating - a.rating);
 
   if (articlesByDate.length) {
@@ -135,18 +146,16 @@ function renderHome() {
   renderTagCloud(articlesByDate, productsByDate);
 
   if (articlesByDate.length) {
-    showArticle(articlesByDate[0].id);
+    showArticle(articlesByDate[0].id, false);
   } else if (productsByDate.length) {
-    showProduct(productsByDate[0].id);
+    showProduct(productsByDate[0].id, false);
   } else {
     detailContent.innerHTML = `<div class="empty-box">記事も商品もまだありません。</div>`;
   }
 }
 
 function renderHeroFromArticle(article) {
-  const firstRelated = state.products.find((p) =>
-    (article.relatedProductIds || []).includes(p.id)
-  );
+  const firstRelated = state.products.find((p) => (article.relatedProductIds || []).includes(p.id));
 
   heroBadge.textContent = "今週の注目記事";
   heroImage.src = article.thumbnail;
@@ -156,13 +165,13 @@ function renderHeroFromArticle(article) {
   heroMeta.textContent = `${article.date} / ${article.category}`;
   heroDesc.textContent = article.excerpt || "";
   heroLink.href = firstRelated?.affiliateLink || "https://www.dmm.co.jp/";
-  heroDetailBtn.textContent = article.articleUrl ? "記事を読む" : "詳細を見る";
+  heroDetailBtn.textContent = article.articleUrl ? "外部記事を開く" : "詳細を見る";
   heroDetailBtn.onclick = () => {
     if (article.articleUrl) {
-      window.location.href = article.articleUrl;
-    } else {
-      showArticle(article.id);
+      window.open(article.articleUrl, "_blank", "noopener,noreferrer");
+      return;
     }
+    showArticle(article.id);
   };
 }
 
@@ -185,7 +194,7 @@ function renderEmptyHero() {
   heroImage.alt = "準備中";
   heroTitle.textContent = "記事と商品を準備中です";
   heroMeta.textContent = "";
-  heroDesc.textContent = "data/articles.json と products.json が読み込まれるとここに表示されます。";
+  heroDesc.textContent = "products.json は読み込めています。記事が未設置でもサイトは表示されます。";
   heroLink.href = "https://www.dmm.co.jp/";
   heroDetailBtn.textContent = "詳細を見る";
   heroDetailBtn.onclick = () => {
@@ -195,35 +204,37 @@ function renderEmptyHero() {
 
 function renderArticles(items) {
   if (!items.length) {
-    articleList.innerHTML = `<div class="empty-box">記事はまだありません。</div>`;
+    articleList.innerHTML = `<div class="empty-box">記事ファイルがまだないため、商品だけ表示しています。</div>`;
     return;
   }
 
   articleList.innerHTML = items
-    .map(
-      (item) => `
-        <article class="card">
-          <div class="card-thumb">
-            <img src="${escapeHtml(item.thumbnail)}" alt="${escapeHtml(item.title)}" referrerpolicy="no-referrer">
+    .map((item) => `
+      <article class="card">
+        <div class="card-thumb">
+          <img src="${escapeHtml(item.thumbnail)}" alt="${escapeHtml(item.title)}" referrerpolicy="no-referrer">
+        </div>
+        <div>
+          <div class="card-meta">
+            <span>${escapeHtml(item.category)}</span>
+            <span>${escapeHtml(item.date)}</span>
           </div>
-          <div>
-            <div class="card-meta">
-              <span>${escapeHtml(item.category)}</span>
-              <span>${escapeHtml(item.date)}</span>
-            </div>
-            <h4>${escapeHtml(item.title)}</h4>
-            <p>${escapeHtml(item.excerpt)}</p>
-            <div class="tag-list">
-              ${(item.tags || []).map((tag) => `<span class="tag">#${escapeHtml(tag)}</span>`).join("")}
-            </div>
-            <div class="card-actions" style="margin-top:14px;">
-              <button class="mini-btn dark" onclick="${item.articleUrl ? `window.location.href='${escapeHtml(item.articleUrl)}'` : `showArticle('${escapeHtml(String(item.id))}')`}">記事を読む</button>
-            </div>
+          <h4>${escapeHtml(item.title)}</h4>
+          <p>${escapeHtml(item.excerpt)}</p>
+          <div class="tag-list">
+            ${(item.tags || []).map((tag) => `<span class="tag">#${escapeHtml(tag)}</span>`).join("")}
           </div>
-        </article>
-      `
-    )
+          <div class="card-actions" style="margin-top:14px;">
+            <button class="mini-btn dark" type="button" data-article-id="${escapeHtml(String(item.id))}">記事を読む</button>
+          </div>
+        </div>
+      </article>
+    `)
     .join("");
+
+  articleList.querySelectorAll("[data-article-id]").forEach((button) => {
+    button.addEventListener("click", () => showArticle(button.dataset.articleId));
+  });
 }
 
 function renderProducts(items) {
@@ -233,32 +244,34 @@ function renderProducts(items) {
   }
 
   productList.innerHTML = items
-    .map(
-      (item) => `
-        <article class="card">
-          <div class="card-thumb">
-            <img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.title)}" referrerpolicy="no-referrer">
+    .map((item) => `
+      <article class="card">
+        <div class="card-thumb">
+          <img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.title)}" referrerpolicy="no-referrer">
+        </div>
+        <div>
+          <div class="card-meta">
+            <span>${escapeHtml(item.category)}</span>
+            <span>${escapeHtml(item.releaseDate)}</span>
+            <span>品番 ${escapeHtml(item.code)}</span>
           </div>
-          <div>
-            <div class="card-meta">
-              <span>${escapeHtml(item.category)}</span>
-              <span>${escapeHtml(item.releaseDate)}</span>
-              <span>品番 ${escapeHtml(item.code)}</span>
-            </div>
-            <h4>${escapeHtml(item.title)}</h4>
-            <p>${escapeHtml(item.description)}</p>
-            <div class="tag-list">
-              ${(item.tags || []).map((tag) => `<span class="tag">#${escapeHtml(tag)}</span>`).join("")}
-            </div>
-            <div class="card-actions" style="margin-top:14px;">
-              <button class="mini-btn dark" onclick="showProduct('${escapeHtml(String(item.id))}')">商品を見る</button>
-              <a class="mini-btn" href="${escapeHtml(item.affiliateLink)}" target="_blank" rel="noopener noreferrer sponsored">FANZAで見る</a>
-            </div>
+          <h4>${escapeHtml(item.title)}</h4>
+          <p>${escapeHtml(item.description)}</p>
+          <div class="tag-list">
+            ${(item.tags || []).map((tag) => `<span class="tag">#${escapeHtml(tag)}</span>`).join("")}
           </div>
-        </article>
-      `
-    )
+          <div class="card-actions" style="margin-top:14px;">
+            <button class="mini-btn dark" type="button" data-product-id="${escapeHtml(String(item.id))}">商品を見る</button>
+            <a class="mini-btn" href="${escapeHtml(item.affiliateLink)}" target="_blank" rel="noopener noreferrer sponsored">FANZAで見る</a>
+          </div>
+        </div>
+      </article>
+    `)
     .join("");
+
+  productList.querySelectorAll("[data-product-id]").forEach((button) => {
+    button.addEventListener("click", () => showProduct(button.dataset.productId));
+  });
 }
 
 function renderRanking(articles, products) {
@@ -267,15 +280,15 @@ function renderRanking(articles, products) {
         index,
         title: item.title,
         meta: item.date,
-        onClick: item.articleUrl
-          ? `window.location.href='${escapeHtml(item.articleUrl)}'`
-          : `showArticle('${escapeHtml(String(item.id))}')`
+        type: "article",
+        id: item.id,
       }))
     : products.slice(0, 5).map((item, index) => ({
         index,
         title: item.title,
         meta: item.releaseDate,
-        onClick: `showProduct('${escapeHtml(String(item.id))}')`
+        type: "product",
+        id: item.id,
       }));
 
   if (!rankingSource.length) {
@@ -284,24 +297,32 @@ function renderRanking(articles, products) {
   }
 
   rankingList.innerHTML = rankingSource
-    .map(
-      (item) => `
-        <a class="ranking-item" href="javascript:void(0)" onclick="${item.onClick}">
-          <div class="rank-num">${String(item.index + 1).padStart(2, "0")}</div>
-          <div>
-            <div class="ranking-item-title">${escapeHtml(item.title)}</div>
-            <div class="ranking-item-meta">${escapeHtml(item.meta)}</div>
-          </div>
-        </a>
-      `
-    )
+    .map((item) => `
+      <button class="ranking-item ranking-button" type="button" data-ranking-type="${item.type}" data-ranking-id="${escapeHtml(String(item.id))}">
+        <div class="rank-num">${String(item.index + 1).padStart(2, "0")}</div>
+        <div>
+          <div class="ranking-item-title">${escapeHtml(item.title)}</div>
+          <div class="ranking-item-meta">${escapeHtml(item.meta)}</div>
+        </div>
+      </button>
+    `)
     .join("");
+
+  rankingList.querySelectorAll("[data-ranking-id]").forEach((button) => {
+    button.addEventListener("click", () => {
+      if (button.dataset.rankingType === "article") {
+        showArticle(button.dataset.rankingId);
+      } else {
+        showProduct(button.dataset.rankingId);
+      }
+    });
+  });
 }
 
 function renderCategories(articles, products) {
   const categories = [
     ...articles.map((item) => item.category),
-    ...products.map((item) => item.category)
+    ...products.flatMap((item) => String(item.category || "").split("/").map((part) => part.trim()))
   ].filter(Boolean);
 
   const uniqueCategories = [...new Set(categories)].slice(0, 12);
@@ -334,18 +355,16 @@ function renderTagCloud(articles, products) {
     .join("");
 }
 
-function showArticle(id) {
+function showArticle(id, shouldScroll = true) {
   const article = state.articles.find((item) => String(item.id) === String(id));
   if (!article) return;
 
   if (article.articleUrl) {
-    window.location.href = article.articleUrl;
+    window.open(article.articleUrl, "_blank", "noopener,noreferrer");
     return;
   }
 
-  const relatedProducts = state.products.filter((p) =>
-    (article.relatedProductIds || []).includes(p.id)
-  );
+  const relatedProducts = state.products.filter((p) => (article.relatedProductIds || []).includes(p.id));
 
   const contentHtml = (article.content || [])
     .map((text) => `<p>${escapeHtml(text)}</p>`)
@@ -353,27 +372,25 @@ function showArticle(id) {
 
   const relatedHtml = relatedProducts.length
     ? relatedProducts
-        .map(
-          (item) => `
-            <article class="card" style="margin-top:12px;">
-              <div class="card-thumb">
-                <img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.title)}" referrerpolicy="no-referrer">
+        .map((item) => `
+          <article class="card" style="margin-top:12px;">
+            <div class="card-thumb">
+              <img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.title)}" referrerpolicy="no-referrer">
+            </div>
+            <div>
+              <div class="card-meta">
+                <span>${escapeHtml(item.category)}</span>
+                <span>${escapeHtml(item.releaseDate)}</span>
               </div>
-              <div>
-                <div class="card-meta">
-                  <span>${escapeHtml(item.category)}</span>
-                  <span>${escapeHtml(item.releaseDate)}</span>
-                </div>
-                <h4>${escapeHtml(item.title)}</h4>
-                <p>${escapeHtml(item.description)}</p>
-                <div class="card-actions">
-                  <button class="mini-btn dark" onclick="showProduct('${escapeHtml(String(item.id))}')">商品を見る</button>
-                  <a class="mini-btn" href="${escapeHtml(item.affiliateLink)}" target="_blank" rel="noopener noreferrer sponsored">FANZAで見る</a>
-                </div>
+              <h4>${escapeHtml(item.title)}</h4>
+              <p>${escapeHtml(item.description)}</p>
+              <div class="card-actions">
+                <button class="mini-btn dark" type="button" data-related-product-id="${escapeHtml(String(item.id))}">商品を見る</button>
+                <a class="mini-btn" href="${escapeHtml(item.affiliateLink)}" target="_blank" rel="noopener noreferrer sponsored">FANZAで見る</a>
               </div>
-            </article>
-          `
-        )
+            </div>
+          </article>
+        `)
         .join("")
     : `<div class="empty-box">関連商品はまだありません。</div>`;
 
@@ -392,24 +409,28 @@ function showArticle(id) {
       <p>自分で書いた特集・レビュー記事です。下に関連商品も表示しています。</p>
     </div>
     <div class="detail-article-content">
-      ${contentHtml}
+      ${contentHtml || `<div class="empty-box">本文はまだありません。</div>`}
     </div>
     <h3 style="margin-top:28px;">関連商品</h3>
     <div>${relatedHtml}</div>
   `;
 
-  document.getElementById("detailSection").scrollIntoView({ behavior: "smooth" });
+  detailContent.querySelectorAll("[data-related-product-id]").forEach((button) => {
+    button.addEventListener("click", () => showProduct(button.dataset.relatedProductId));
+  });
+
+  if (shouldScroll) {
+    document.getElementById("detailSection").scrollIntoView({ behavior: "smooth" });
+  }
 }
 
-function showProduct(id) {
+function showProduct(id, shouldScroll = true) {
   const item = state.products.find((product) => String(product.id) === String(id));
   if (!item) return;
 
   const galleryHtml = (item.gallery || [])
     .slice(0, 4)
-    .map(
-      (img) => `<img src="${escapeHtml(img)}" alt="${escapeHtml(item.title)}" referrerpolicy="no-referrer">`
-    )
+    .map((img) => `<img src="${escapeHtml(img)}" alt="${escapeHtml(item.title)}" referrerpolicy="no-referrer">`)
     .join("");
 
   const pointsHtml = (item.points || [])
@@ -440,7 +461,7 @@ function showProduct(id) {
       </div>
     </div>
     <h3>この商品のポイント</h3>
-    <div class="point-list">${pointsHtml}</div>
+    <div class="point-list">${pointsHtml || `<div class="empty-box">ポイントはまだありません。</div>`}</div>
     <h3 style="margin-top:28px;">サンプルイメージ</h3>
     <div class="detail-gallery">
       ${galleryHtml || `<div class="empty-box">画像がありません。</div>`}
@@ -459,16 +480,9 @@ function showProduct(id) {
     </table>
   `;
 
-  document.getElementById("detailSection").scrollIntoView({ behavior: "smooth" });
-}
-
-function escapeHtml(value) {
-  return String(value)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
+  if (shouldScroll) {
+    document.getElementById("detailSection").scrollIntoView({ behavior: "smooth" });
+  }
 }
 
 function setupAgeGate() {
