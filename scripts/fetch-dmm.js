@@ -58,12 +58,20 @@ function decodeHtml(value) {
 }
 
 function stripHtml(value) {
-  return decodeHtml(String(value || "").replace(/<br\s*\/?>/gi, "\n").replace(/<[^>]+>/g, " "));
+  return decodeHtml(
+    String(value || "")
+      .replace(/<br\s*\/?>/gi, "\n")
+      .replace(/<\/p>/gi, "\n")
+      .replace(/<\/div>/gi, "\n")
+      .replace(/<[^>]+>/g, " ")
+  );
 }
 
 function normalizeWhitespace(value) {
   return String(value || "")
     .replace(/\r/g, "")
+    .replace(/[ \t]+\n/g, "\n")
+    .replace(/\n[ \t]+/g, "\n")
     .replace(/\n{3,}/g, "\n\n")
     .replace(/[ \t]{2,}/g, " ")
     .replace(/\s+([。、！？])/g, "$1")
@@ -71,19 +79,39 @@ function normalizeWhitespace(value) {
 }
 
 function cleanDescription(value) {
-  const normalized = normalizeWhitespace(stripHtml(value));
+  let normalized = normalizeWhitespace(stripHtml(value));
   if (!normalized) return "";
 
+  // 年齢確認系の文言を削除
+  normalized = normalized
+    .replace(/from here on, it will be an adult site that handles adult products\.?/gi, "")
+    .replace(/access by anyone under the age of 18 is strictly prohibited\.?/gi, "")
+    .replace(/this page is for adults only\.?/gi, "")
+    .replace(/adults only\.?/gi, "")
+    .replace(/18\+ only\.?/gi, "")
+    .replace(/this content is intended for adults only\.?/gi, "")
+    .replace(/you must be 18 years or older to enter\.?/gi, "")
+    .replace(/この先のページは18歳以上.*$/gim, "")
+    .replace(/18歳未満の方は閲覧できません。?/gim, "")
+    .replace(/18歳以上対象.*$/gim, "")
+    .replace(/年齢確認/gim, "")
+    .trim();
+
+  normalized = normalizeWhitespace(normalized);
+
   const invalidPatterns = [
-    /^商品説明がありません。?$/,
-    /^商品説明がまだありません。?$/,
-    /^説明文はありません。?$/,
-    /^年齢確認$/,
-    /^この先のページは18歳以上.*$/,
-    /^DMMアフィリエイト.*$/,
+    /^商品説明がありません。?$/i,
+    /^商品説明がまだありません。?$/i,
+    /^説明文はありません。?$/i,
+    /^年齢確認$/i,
+    /^adults only\.?$/i,
+    /^18\+ only\.?$/i,
+    /^this page is for adults only\.?$/i,
+    /^from here on, it will be an adult site that handles adult products\.?$/i,
+    /^access by anyone under the age of 18 is strictly prohibited\.?$/i,
   ];
 
-  if (invalidPatterns.some((pattern) => pattern.test(normalized))) {
+  if (!normalized || invalidPatterns.some((pattern) => pattern.test(normalized))) {
     return "";
   }
 
@@ -97,16 +125,32 @@ function hasUsefulDescription(value) {
 
 function extractMetaContent(html, key, attr = "name") {
   const escapedKey = key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const pattern = new RegExp(
-    `<meta[^>]+${attr}=["']${escapedKey}["'][^>]+content=["']([\\s\\S]*?)["'][^>]*>`,
-    "i"
-  );
-  const match = html.match(pattern);
-  return match?.[1] || "";
+
+  const patterns = [
+    new RegExp(
+      `<meta[^>]+${attr}=["']${escapedKey}["'][^>]+content=["']([\\s\\S]*?)["'][^>]*>`,
+      "i"
+    ),
+    new RegExp(
+      `<meta[^>]+content=["']([\\s\\S]*?)["'][^>]+${attr}=["']${escapedKey}["'][^>]*>`,
+      "i"
+    ),
+  ];
+
+  for (const pattern of patterns) {
+    const match = html.match(pattern);
+    if (match?.[1]) return match[1];
+  }
+
+  return "";
 }
 
 function extractJsonLdDescription(html) {
-  const matches = [...html.matchAll(/<script[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)];
+  const matches = [
+    ...html.matchAll(
+      /<script[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi
+    ),
+  ];
 
   for (const match of matches) {
     const raw = match?.[1];
@@ -123,7 +167,7 @@ function extractJsonLdDescription(html) {
         }
       }
     } catch {
-      // JSON-LD が壊れている場合は無視
+      // 壊れたJSON-LDは無視
     }
   }
 
@@ -132,8 +176,9 @@ function extractJsonLdDescription(html) {
 
 function extractBodyDescription(html) {
   const blockPatterns = [
-    /<p[^>]*class=["'][^"']*(?:mg-b20|summary|lead|description)[^"']*["'][^>]*>([\s\S]*?)<\/p>/i,
-    /<div[^>]*class=["'][^"']*(?:mg-b20|summary|lead|description)[^"']*["'][^>]*>([\s\S]*?)<\/div>/i,
+    /<p[^>]*class=["'][^"']*(?:mg-b20|summary|lead|description|tx-lead|item-detail)[^"']*["'][^>]*>([\s\S]*?)<\/p>/i,
+    /<div[^>]*class=["'][^"']*(?:mg-b20|summary|lead|description|tx-lead|item-detail)[^"']*["'][^>]*>([\s\S]*?)<\/div>/i,
+    /<section[^>]*class=["'][^"']*(?:description|detail|summary)[^"']*["'][^>]*>([\s\S]*?)<\/section>/i,
   ];
 
   for (const pattern of blockPatterns) {
@@ -292,9 +337,14 @@ async function fetchProducts() {
 
   const normalized = await mapWithConcurrency(items, FETCH_DETAIL_CONCURRENCY, async (item, index) => {
     const apiDescription = cleanDescription(item?.comment || item?.description || "");
-    const description = hasUsefulDescription(apiDescription)
-      ? apiDescription
-      : (await fetchDescriptionFromDetail(item)) || PLACEHOLDER_DESCRIPTION;
+    const detailDescription = hasUsefulDescription(apiDescription)
+      ? ""
+      : await fetchDescriptionFromDetail(item);
+
+    const description =
+      apiDescription ||
+      detailDescription ||
+      PLACEHOLDER_DESCRIPTION;
 
     return {
       id: index + 1,
@@ -308,11 +358,23 @@ async function fetchProducts() {
       code: item?.content_id || item?.product_id || item?.cid || `item-${index + 1}`,
       releaseDate: item?.date || "日付不明",
       duration: item?.volume || "不明",
-      price: item?.prices?.price || item?.prices?.delivery || item?.price || "価格未設定",
+      price:
+        item?.prices?.price ||
+        item?.prices?.delivery ||
+        item?.price ||
+        "価格未設定",
       rating: 80,
-      affiliateLink: item?.affiliateURL || item?.affiliate_url || item?.URL || item?.url || "#",
+      affiliateLink:
+        item?.affiliateURL ||
+        item?.affiliate_url ||
+        item?.URL ||
+        item?.url ||
+        "#",
       gallery: pickGallery(item),
-      tags: (item?.iteminfo?.genre || []).map((v) => v?.name).filter(Boolean).slice(0, 5),
+      tags: (item?.iteminfo?.genre || [])
+        .map((v) => v?.name)
+        .filter(Boolean)
+        .slice(0, 5),
       points: [
         "FANZA APIから自動取得した商品です。",
         "最新データに合わせて products.json を更新しています。",
@@ -324,7 +386,10 @@ async function fetchProducts() {
   const filePath = path.join(process.cwd(), "products.json");
   fs.writeFileSync(filePath, JSON.stringify(normalized, null, 2), "utf-8");
 
-  const filledCount = normalized.filter((item) => item.description !== PLACEHOLDER_DESCRIPTION).length;
+  const filledCount = normalized.filter(
+    (item) => item.description !== PLACEHOLDER_DESCRIPTION
+  ).length;
+
   console.log(`products.json を更新しました: ${normalized.length}件`);
   console.log(`説明文あり: ${filledCount}件 / ${normalized.length}件`);
   console.log("=== DMM fetch success ===");
