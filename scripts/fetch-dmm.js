@@ -5,8 +5,12 @@ const API_ID = process.env.DMM_API_ID;
 const AFFILIATE_ID = process.env.DMM_AFFILIATE_ID;
 const SERVICE = process.env.DMM_SERVICE || "digital";
 const FLOOR = process.env.DMM_FLOOR || "videoa";
-const HITS = process.env.DMM_HITS || "30";
+const HITS = String(process.env.DMM_HITS || "30");
 const SORT = process.env.DMM_SORT || "date";
+const FETCH_DETAIL_CONCURRENCY = Number(process.env.DMM_DETAIL_CONCURRENCY || 3);
+const FETCH_TIMEOUT_MS = Number(process.env.DMM_FETCH_TIMEOUT_MS || 15000);
+
+const PLACEHOLDER_DESCRIPTION = "商品説明がありません。";
 
 function pickImage(item) {
   return (
@@ -22,7 +26,7 @@ function pickImage(item) {
 function pickGallery(item) {
   const images = [];
 
-  if (item?.sampleImageURL?.sample_l?.image && Array.isArray(item.sampleImageURL.sample_l.image)) {
+  if (Array.isArray(item?.sampleImageURL?.sample_l?.image)) {
     images.push(...item.sampleImageURL.sample_l.image);
   }
 
@@ -31,13 +35,204 @@ function pickGallery(item) {
     if (cover) images.push(cover);
   }
 
-  return images.slice(0, 4);
+  return [...new Set(images)].slice(0, 4);
 }
 
 function pickNames(item, key) {
   const list = item?.iteminfo?.[key];
   if (!Array.isArray(list) || !list.length) return "";
-  return list.map((v) => v.name).filter(Boolean).join(" / ");
+  return list.map((v) => v?.name).filter(Boolean).join(" / ");
+}
+
+function decodeHtml(value) {
+  return String(value || "")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&#x2F;/g, "/")
+    .replace(/&#x60;/g, "`")
+    .replace(/&#x3D;/g, "=")
+    .replace(/&nbsp;/g, " ");
+}
+
+function stripHtml(value) {
+  return decodeHtml(String(value || "").replace(/<br\s*\/?>/gi, "\n").replace(/<[^>]+>/g, " "));
+}
+
+function normalizeWhitespace(value) {
+  return String(value || "")
+    .replace(/\r/g, "")
+    .replace(/\n{3,}/g, "\n\n")
+    .replace(/[ \t]{2,}/g, " ")
+    .replace(/\s+([。、！？])/g, "$1")
+    .trim();
+}
+
+function cleanDescription(value) {
+  const normalized = normalizeWhitespace(stripHtml(value));
+  if (!normalized) return "";
+
+  const invalidPatterns = [
+    /^商品説明がありません。?$/,
+    /^商品説明がまだありません。?$/,
+    /^説明文はありません。?$/,
+    /^年齢確認$/,
+    /^この先のページは18歳以上.*$/,
+    /^DMMアフィリエイト.*$/,
+  ];
+
+  if (invalidPatterns.some((pattern) => pattern.test(normalized))) {
+    return "";
+  }
+
+  return normalized;
+}
+
+function hasUsefulDescription(value) {
+  const cleaned = cleanDescription(value);
+  return cleaned.length >= 20;
+}
+
+function extractMetaContent(html, key, attr = "name") {
+  const escapedKey = key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const pattern = new RegExp(
+    `<meta[^>]+${attr}=["']${escapedKey}["'][^>]+content=["']([\\s\\S]*?)["'][^>]*>`,
+    "i"
+  );
+  const match = html.match(pattern);
+  return match?.[1] || "";
+}
+
+function extractJsonLdDescription(html) {
+  const matches = [...html.matchAll(/<script[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)];
+
+  for (const match of matches) {
+    const raw = match?.[1];
+    if (!raw) continue;
+
+    try {
+      const parsed = JSON.parse(raw.trim());
+      const candidates = Array.isArray(parsed) ? parsed : [parsed];
+
+      for (const candidate of candidates) {
+        const description = cleanDescription(candidate?.description);
+        if (hasUsefulDescription(description)) {
+          return description;
+        }
+      }
+    } catch {
+      // JSON-LD が壊れている場合は無視
+    }
+  }
+
+  return "";
+}
+
+function extractBodyDescription(html) {
+  const blockPatterns = [
+    /<p[^>]*class=["'][^"']*(?:mg-b20|summary|lead|description)[^"']*["'][^>]*>([\s\S]*?)<\/p>/i,
+    /<div[^>]*class=["'][^"']*(?:mg-b20|summary|lead|description)[^"']*["'][^>]*>([\s\S]*?)<\/div>/i,
+  ];
+
+  for (const pattern of blockPatterns) {
+    const match = html.match(pattern);
+    const description = cleanDescription(match?.[1] || "");
+    if (hasUsefulDescription(description)) {
+      return description;
+    }
+  }
+
+  return "";
+}
+
+function extractLurl(url) {
+  if (!url) return "";
+
+  try {
+    const parsed = new URL(url);
+    const lurl = parsed.searchParams.get("lurl");
+    return lurl ? decodeURIComponent(lurl) : "";
+  } catch {
+    return "";
+  }
+}
+
+function buildDetailUrl(item) {
+  return item?.URL || item?.url || extractLurl(item?.affiliateURL || item?.affiliate_url) || "";
+}
+
+async function fetchText(url) {
+  if (!url) return "";
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+
+  try {
+    const response = await fetch(url, {
+      headers: {
+        "User-Agent": "shiroto-collection-bot/1.1",
+        "Accept-Language": "ja-JP,ja;q=0.9,en-US;q=0.8,en;q=0.7",
+      },
+      redirect: "follow",
+      signal: controller.signal,
+    });
+
+    if (!response.ok) {
+      console.warn(`[detail] ${url} -> HTTP ${response.status}`);
+      return "";
+    }
+
+    return await response.text();
+  } catch (error) {
+    console.warn(`[detail] ${url} -> ${error.message}`);
+    return "";
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+async function fetchDescriptionFromDetail(item) {
+  const detailUrl = buildDetailUrl(item);
+  if (!detailUrl) return "";
+
+  const html = await fetchText(detailUrl);
+  if (!html) return "";
+
+  const candidates = [
+    extractMetaContent(html, "description"),
+    extractMetaContent(html, "og:description", "property"),
+    extractJsonLdDescription(html),
+    extractBodyDescription(html),
+  ];
+
+  for (const candidate of candidates) {
+    const cleaned = cleanDescription(candidate);
+    if (hasUsefulDescription(cleaned)) {
+      return cleaned;
+    }
+  }
+
+  return "";
+}
+
+async function mapWithConcurrency(list, limit, mapper) {
+  const results = new Array(list.length);
+  let cursor = 0;
+
+  async function worker() {
+    while (true) {
+      const current = cursor;
+      cursor += 1;
+      if (current >= list.length) return;
+      results[current] = await mapper(list[current], current);
+    }
+  }
+
+  const workerCount = Math.max(1, Math.min(limit, list.length || 1));
+  await Promise.all(Array.from({ length: workerCount }, () => worker()));
+  return results;
 }
 
 async function fetchProducts() {
@@ -63,12 +258,16 @@ async function fetchProducts() {
   endpoint.searchParams.set("sort", SORT);
   endpoint.searchParams.set("output", "json");
 
-  console.log("Request URL:", endpoint.toString().replace(API_ID, "***API_ID***").replace(AFFILIATE_ID, "***AFFILIATE_ID***"));
+  console.log(
+    "Request URL:",
+    endpoint.toString().replace(API_ID, "***API_ID***").replace(AFFILIATE_ID, "***AFFILIATE_ID***")
+  );
 
   const response = await fetch(endpoint.toString(), {
     headers: {
-      "User-Agent": "shiroto-collection-bot/1.0"
-    }
+      "User-Agent": "shiroto-collection-bot/1.1",
+      "Accept-Language": "ja-JP,ja;q=0.9,en-US;q=0.8,en;q=0.7",
+    },
   });
 
   console.log("Response status:", response.status);
@@ -80,7 +279,7 @@ async function fetchProducts() {
   let data;
   try {
     data = JSON.parse(rawText);
-  } catch (e) {
+  } catch {
     throw new Error("APIの返り値がJSONではありません。レスポンスを確認してください。");
   }
 
@@ -91,43 +290,43 @@ async function fetchProducts() {
     throw new Error("APIから商品が取得できませんでした。result.items が空です。");
   }
 
-  const normalized = items.map((item, index) => ({
-    id: index + 1,
-    title: item.title || "タイトル未設定",
-    image: pickImage(item),
-    description: item.comment || item.description || "商品説明がありません。",
-    actress: pickNames(item, "actress") || "出演者情報なし",
-    maker: pickNames(item, "maker") || "メーカー不明",
-    label: pickNames(item, "label") || "レーベル不明",
-    category: pickNames(item, "genre") || "新着商品",
-    code: item.content_id || item.product_id || item.cid || `item-${index + 1}`,
-    releaseDate: item.date || "日付不明",
-    duration: item.volume || "不明",
-    price:
-      item?.prices?.price ||
-      item?.prices?.delivery ||
-      item?.price ||
-      "価格未設定",
-    rating: 80,
-    affiliateLink:
-      item.affiliateURL ||
-      item.affiliate_url ||
-      item.URL ||
-      item.url ||
-      "#",
-    gallery: pickGallery(item),
-    tags: (item?.iteminfo?.genre || []).map((v) => v.name).filter(Boolean).slice(0, 5),
-    points: [
-      "FANZA APIから自動取得した商品です。",
-      "最新データに合わせて products.json を更新しています。",
-      "価格や配信状況は公式ページでご確認ください。"
-    ]
-  }));
+  const normalized = await mapWithConcurrency(items, FETCH_DETAIL_CONCURRENCY, async (item, index) => {
+    const apiDescription = cleanDescription(item?.comment || item?.description || "");
+    const description = hasUsefulDescription(apiDescription)
+      ? apiDescription
+      : (await fetchDescriptionFromDetail(item)) || PLACEHOLDER_DESCRIPTION;
+
+    return {
+      id: index + 1,
+      title: item?.title || "タイトル未設定",
+      image: pickImage(item),
+      description,
+      actress: pickNames(item, "actress") || "出演者情報なし",
+      maker: pickNames(item, "maker") || "メーカー不明",
+      label: pickNames(item, "label") || "レーベル不明",
+      category: pickNames(item, "genre") || "新着商品",
+      code: item?.content_id || item?.product_id || item?.cid || `item-${index + 1}`,
+      releaseDate: item?.date || "日付不明",
+      duration: item?.volume || "不明",
+      price: item?.prices?.price || item?.prices?.delivery || item?.price || "価格未設定",
+      rating: 80,
+      affiliateLink: item?.affiliateURL || item?.affiliate_url || item?.URL || item?.url || "#",
+      gallery: pickGallery(item),
+      tags: (item?.iteminfo?.genre || []).map((v) => v?.name).filter(Boolean).slice(0, 5),
+      points: [
+        "FANZA APIから自動取得した商品です。",
+        "最新データに合わせて products.json を更新しています。",
+        "価格や配信状況は公式ページでご確認ください。",
+      ],
+    };
+  });
 
   const filePath = path.join(process.cwd(), "products.json");
   fs.writeFileSync(filePath, JSON.stringify(normalized, null, 2), "utf-8");
 
+  const filledCount = normalized.filter((item) => item.description !== PLACEHOLDER_DESCRIPTION).length;
   console.log(`products.json を更新しました: ${normalized.length}件`);
+  console.log(`説明文あり: ${filledCount}件 / ${normalized.length}件`);
   console.log("=== DMM fetch success ===");
 }
 
