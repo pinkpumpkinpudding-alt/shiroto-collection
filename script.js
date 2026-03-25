@@ -79,7 +79,8 @@ function normalizeArticle(item, index) {
     excerpt: item.excerpt || "",
     content: Array.isArray(item.content) ? item.content : [],
     relatedProductIds: Array.isArray(item.relatedProductIds) ? item.relatedProductIds : [],
-    tags: Array.isArray(item.tags) ? item.tags : []
+    tags: Array.isArray(item.tags) ? item.tags : [],
+    articleUrl: item.articleUrl || ""
   };
 }
 
@@ -150,18 +151,26 @@ function renderHeroFromArticle(article) {
   heroBadge.textContent = "今週の注目記事";
   heroImage.src = article.thumbnail;
   heroImage.alt = article.title;
+  heroImage.setAttribute("referrerpolicy", "no-referrer");
   heroTitle.textContent = article.title;
   heroMeta.textContent = `${article.date} / ${article.category}`;
   heroDesc.textContent = article.excerpt || "";
   heroLink.href = firstRelated?.affiliateLink || "https://www.dmm.co.jp/";
-  heroDetailBtn.textContent = "記事を読む";
-  heroDetailBtn.onclick = () => showArticle(article.id);
+  heroDetailBtn.textContent = article.articleUrl ? "記事を読む" : "詳細を見る";
+  heroDetailBtn.onclick = () => {
+    if (article.articleUrl) {
+      window.location.href = article.articleUrl;
+    } else {
+      showArticle(article.id);
+    }
+  };
 }
 
 function renderHeroFromProduct(product) {
   heroBadge.textContent = "今週の注目商品";
   heroImage.src = product.image;
   heroImage.alt = product.title;
+  heroImage.setAttribute("referrerpolicy", "no-referrer");
   heroTitle.textContent = product.title;
   heroMeta.textContent = `${product.releaseDate} / ${product.category} / 品番 ${product.code}`;
   heroDesc.textContent = product.description || "";
@@ -195,7 +204,7 @@ function renderArticles(items) {
       (item) => `
         <article class="card">
           <div class="card-thumb">
-            <img src="${escapeHtml(item.thumbnail)}" alt="${escapeHtml(item.title)}">
+            <img src="${escapeHtml(item.thumbnail)}" alt="${escapeHtml(item.title)}" referrerpolicy="no-referrer">
           </div>
           <div>
             <div class="card-meta">
@@ -208,7 +217,7 @@ function renderArticles(items) {
               ${(item.tags || []).map((tag) => `<span class="tag">#${escapeHtml(tag)}</span>`).join("")}
             </div>
             <div class="card-actions" style="margin-top:14px;">
-              <button class="mini-btn dark" onclick="showArticle('${escapeHtml(String(item.id))}')">記事を読む</button>
+              <button class="mini-btn dark" onclick="${item.articleUrl ? `window.location.href='${escapeHtml(item.articleUrl)}'` : `showArticle('${escapeHtml(String(item.id))}')`}">記事を読む</button>
             </div>
           </div>
         </article>
@@ -228,7 +237,7 @@ function renderProducts(items) {
       (item) => `
         <article class="card">
           <div class="card-thumb">
-            <img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.title)}">
+            <img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.title)}" referrerpolicy="no-referrer">
           </div>
           <div>
             <div class="card-meta">
@@ -258,7 +267,9 @@ function renderRanking(articles, products) {
         index,
         title: item.title,
         meta: item.date,
-        onClick: `showArticle('${escapeHtml(String(item.id))}')`
+        onClick: item.articleUrl
+          ? `window.location.href='${escapeHtml(item.articleUrl)}'`
+          : `showArticle('${escapeHtml(String(item.id))}')`
       }))
     : products.slice(0, 5).map((item, index) => ({
         index,
@@ -327,6 +338,11 @@ function showArticle(id) {
   const article = state.articles.find((item) => String(item.id) === String(id));
   if (!article) return;
 
+  if (article.articleUrl) {
+    window.location.href = article.articleUrl;
+    return;
+  }
+
   const relatedProducts = state.products.filter((p) =>
     (article.relatedProductIds || []).includes(p.id)
   );
@@ -341,7 +357,7 @@ function showArticle(id) {
           (item) => `
             <article class="card" style="margin-top:12px;">
               <div class="card-thumb">
-                <img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.title)}">
+                <img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.title)}" referrerpolicy="no-referrer">
               </div>
               <div>
                 <div class="card-meta">
@@ -363,26 +379,21 @@ function showArticle(id) {
 
   detailContent.innerHTML = `
     <div class="detail-hero">
-      <img src="${escapeHtml(article.thumbnail)}" alt="${escapeHtml(article.title)}">
+      <img src="${escapeHtml(article.thumbnail)}" alt="${escapeHtml(article.title)}" referrerpolicy="no-referrer">
     </div>
-
     <div class="card-meta">
       <span>${escapeHtml(article.category)}</span>
       <span>${escapeHtml(article.date)}</span>
     </div>
-
     <h2 class="detail-title">${escapeHtml(article.title)}</h2>
     <p class="detail-desc">${escapeHtml(article.excerpt)}</p>
-
     <div class="cta-box">
       <h4>この記事について</h4>
       <p>自分で書いた特集・レビュー記事です。下に関連商品も表示しています。</p>
     </div>
-
     <div class="detail-article-content">
       ${contentHtml}
     </div>
-
     <h3 style="margin-top:28px;">関連商品</h3>
     <div>${relatedHtml}</div>
   `;
@@ -397,7 +408,7 @@ function showProduct(id) {
   const galleryHtml = (item.gallery || [])
     .slice(0, 4)
     .map(
-      (img) => `<img src="${escapeHtml(img)}" alt="${escapeHtml(item.title)}">`
+      (img) => `<img src="${escapeHtml(img)}" alt="${escapeHtml(item.title)}" referrerpolicy="no-referrer">`
     )
     .join("");
 
@@ -407,23 +418,18 @@ function showProduct(id) {
 
   detailContent.innerHTML = `
     <div class="detail-hero">
-      <img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.title)}">
+      <img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.title)}" referrerpolicy="no-referrer">
     </div>
-
     <div class="card-meta">
       <span>${escapeHtml(item.category)}</span>
       <span>${escapeHtml(item.releaseDate)}</span>
       <span>品番 ${escapeHtml(item.code)}</span>
     </div>
-
     <h2 class="detail-title">${escapeHtml(item.title)}</h2>
-
     <p class="detail-info">
       出演者: ${escapeHtml(item.actress)} / メーカー: ${escapeHtml(item.maker)} / レーベル: ${escapeHtml(item.label)}
     </p>
-
     <p class="detail-desc">${escapeHtml(item.description)}</p>
-
     <div class="cta-box">
       <h4>公式で確認</h4>
       <p>価格・サンプル・配信状況は公式ページでご確認ください。</p>
@@ -433,15 +439,12 @@ function showProduct(id) {
         </a>
       </div>
     </div>
-
     <h3>この商品のポイント</h3>
     <div class="point-list">${pointsHtml}</div>
-
     <h3 style="margin-top:28px;">サンプルイメージ</h3>
     <div class="detail-gallery">
       ${galleryHtml || `<div class="empty-box">画像がありません。</div>`}
     </div>
-
     <h3 style="margin-top:28px;">商品情報</h3>
     <table class="detail-table">
       <tr><th>タイトル</th><td>${escapeHtml(item.title)}</td></tr>
