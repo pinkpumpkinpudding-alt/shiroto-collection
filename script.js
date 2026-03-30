@@ -173,67 +173,71 @@ async function fetchJsonWithFallback(paths, fallbackValue) {
 }
 
 async function loadAllData() {
-  const [rawProducts, rawArticles] = await Promise.all([
-    fetchJsonWithFallback(["./products.json"], []),
-    fetchJsonWithFallback(["./data/articles.json", "./articles.json"], []),
-  ]);
+  try {
+    const [productsRes, articlesRes] = await Promise.all([
+      fetch("./products.json", { cache: "no-store" }),
+      fetch("./data/articles.json", { cache: "no-store" })
+    ]);
 
-  const productListData = Array.isArray(rawProducts) ? rawProducts : rawProducts.products || [];
-  const articleListData = Array.isArray(rawArticles) ? rawArticles : rawArticles.articles || [];
+    const rawProducts = await productsRes.json();
+    const rawArticles = await articlesRes.json();
 
-  state.products = productListData.map(normalizeProduct);
-  state.articles = articleListData.map(normalizeArticle);
+    const productListData = Array.isArray(rawProducts) ? rawProducts : rawProducts.products || [];
+    const articleListData = Array.isArray(rawArticles) ? rawArticles : rawArticles.articles || [];
 
-  renderHome();
-}
+    state.products = productListData
+      .map(normalizeProduct)
+      .filter(isTargetConceptProduct);
 
-function renderHome() {
-  const articlesByDate = [...state.articles].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  const productsByDate = [...state.products].sort((a, b) => new Date(b.releaseDate).getTime() - new Date(a.releaseDate).getTime());
-  const productsByRating = [...state.products].sort((a, b) => b.rating - a.rating);
+    state.articles = articleListData.map(normalizeArticle);
+
+    function renderHome() {
+  const productsByDate = [...state.products].sort((a, b) => {
+    return new Date(b.releaseDate).getTime() - new Date(a.releaseDate).getTime();
+  });
+
+  const articlesByDate = [...state.articles].sort((a, b) => {
+    return new Date(b.date).getTime() - new Date(a.date).getTime();
+  });
+
+  if (articleSection) {
+    articleSection.style.display = "none";
+  }
+
+  if (rankingTitle) {
+    rankingTitle.textContent = "新着商品";
+  }
+
+  if (detailHeading) {
+    detailHeading.textContent = "商品詳細";
+  }
+
+  if (productsByDate.length) {
+    renderHeroFromProduct(productsByDate[0]);
+    renderProducts(productsByDate);
+    renderRanking([], productsByDate);
+    renderCategories([], productsByDate);
+    renderTagCloud([], productsByDate);
+    showProduct(productsByDate[0].id);
+    return;
+  }
 
   if (articlesByDate.length) {
     renderHeroFromArticle(articlesByDate[0]);
-  } else if (productsByDate.length) {
-    renderHeroFromProduct(productsByDate[0]);
-  } else {
-    renderEmptyHero();
+    renderArticles(articlesByDate);
+    renderRanking(articlesByDate, []);
+    renderCategories(articlesByDate, []);
+    renderTagCloud(articlesByDate, []);
+    showArticle(articlesByDate[0].id);
+    return;
   }
 
-  renderArticles(articlesByDate);
-  renderProducts(productsByDate);
-  renderRanking(articlesByDate, productsByRating);
-  renderCategories(articlesByDate, productsByDate);
-  renderTagCloud(articlesByDate, productsByDate);
-
-  if (articlesByDate.length) {
-    showArticle(articlesByDate[0].id, false);
-  } else if (productsByDate.length) {
-    showProduct(productsByDate[0].id, false);
-  } else {
-    detailContent.innerHTML = `<div class="empty-box">記事も商品もまだありません。</div>`;
-  }
-}
-
-function renderHeroFromArticle(article) {
-  const firstRelated = state.products.find((p) => (article.relatedProductIds || []).includes(p.id));
-
-  heroBadge.textContent = "今週の注目記事";
-  heroImage.src = article.thumbnail;
-  heroImage.alt = article.title;
-  heroImage.setAttribute("referrerpolicy", "no-referrer");
-  heroTitle.textContent = article.title;
-  heroMeta.textContent = `${article.date} / ${article.category}`;
-  heroDesc.textContent = article.excerpt || "";
-  heroLink.href = firstRelated?.affiliateLink || "https://www.dmm.co.jp/";
-  heroDetailBtn.textContent = article.articleUrl ? "外部記事を開く" : "詳細を見る";
-  heroDetailBtn.onclick = () => {
-    if (article.articleUrl) {
-      window.open(article.articleUrl, "_blank", "noopener,noreferrer");
-      return;
-    }
-    showArticle(article.id);
-  };
+  renderEmptyHero();
+  renderProducts([]);
+  renderRanking([], []);
+  renderCategories([], []);
+  renderTagCloud([], []);
+  detailContent.innerHTML = `<div class="empty-box">表示できる商品がまだありません。</div>`;
 }
 
 function renderHeroFromProduct(product) {
