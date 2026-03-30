@@ -5,7 +5,7 @@ const API_ID = process.env.DMM_API_ID;
 const AFFILIATE_ID = process.env.DMM_AFFILIATE_ID;
 const SERVICE = process.env.DMM_SERVICE || "digital";
 const FLOOR = process.env.DMM_FLOOR || "videoa";
-const HITS = String(process.env.DMM_HITS || "120");
+const HITS = String(process.env.DMM_HITS || "30");
 const SORT = process.env.DMM_SORT || "date";
 
 const ALLOW_KEYWORDS = [
@@ -121,23 +121,24 @@ async function fetchProducts() {
   endpoint.searchParams.set("sort", SORT);
   endpoint.searchParams.set("output", "json");
 
-  const response = await fetch(endpoint.toString(), {
-    headers: {
-      "User-Agent": "shiroto-collection-bot/3.0",
-      "Accept-Language": "ja-JP,ja;q=0.9,en-US;q=0.8,en;q=0.7"
-    }
-  });
-
-  if (!response.ok) {
-    throw new Error(`API取得失敗: HTTP ${response.status}`);
+const response = await fetch(endpoint.toString(), {
+  headers: {
+    "User-Agent": "shiroto-collection-bot/3.0",
+    "Accept-Language": "ja-JP,ja;q=0.9,en-US;q=0.8,en;q=0.7"
   }
+});
 
-  const data = await response.json();
-  const items = data?.result?.items;
+const rawText = await response.text();
 
-  if (!Array.isArray(items) || !items.length) {
-    throw new Error("APIから商品が取得できませんでした。");
-  }
+console.log("Response status:", response.status);
+console.log("Response ok:", response.ok);
+console.log("Raw response preview:", rawText.slice(0, 1500));
+
+if (!response.ok) {
+  throw new Error(`API取得失敗: HTTP ${response.status} / ${rawText.slice(0, 500)}`);
+}
+
+const data = JSON.parse(rawText);
 
   const filteredItems = items
     .filter(isConceptMatch)
