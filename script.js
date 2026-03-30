@@ -21,6 +21,67 @@ const detailContent = document.getElementById("detailContent");
 const tagCloud = document.getElementById("tagCloud");
 const categoryList = document.getElementById("categoryList");
 
+const articleSection = document.getElementById("articles");
+const rankingTitle = document.querySelector("#ranking h3");
+const detailHeading = document.querySelector("#detailSection .section-head h3");
+
+const FRONT_ALLOW_KEYWORDS = [
+  "素人",
+  "シロウト",
+  "新人",
+  "デビュー",
+  "初撮り",
+  "初体験",
+  "初出演",
+  "デビュー作",
+  "初脱ぎ"
+];
+
+const FRONT_BLOCK_KEYWORDS = [
+  "VR",
+  "8KVR",
+  "VR専用",
+  "ニューハーフ",
+  "男の娘",
+  "女装",
+  "SM",
+  "アナル",
+  "アナルセックス",
+  "蝋燭",
+  "ベスト",
+  "BEST",
+  "総集編",
+  "4時間以上作品",
+  "熟女",
+  "人妻",
+  "レズ",
+  "レズビアン"
+];
+
+function normalizeConceptText(value) {
+  return String(value || "").toLowerCase().replace(/\s+/g, "").trim();
+}
+
+function includesKeyword(text, keywords) {
+  const normalized = normalizeConceptText(text);
+  return keywords.some((keyword) => normalized.includes(normalizeConceptText(keyword)));
+}
+
+function isTargetConceptProduct(item) {
+  const searchText = [
+    item.title,
+    item.category,
+    ...(item.tags || []),
+    item.maker,
+    item.label
+  ].filter(Boolean).join(" / ");
+
+  const hasAllow = includesKeyword(searchText, FRONT_ALLOW_KEYWORDS);
+  const hasBlock = includesKeyword(searchText, FRONT_BLOCK_KEYWORDS);
+
+  return hasAllow && !hasBlock;
+}
+
 function escapeHtml(value) {
   return String(value ?? "")
     .replaceAll("&", "&amp;")
