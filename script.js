@@ -65,12 +65,12 @@ function normalizeProduct(item, index) {
   return {
     id: item.id ?? index + 1,
     title: item.title || item.name || "タイトル未設定",
-    image:
-      item.image ||
-      item.jacket ||
-      item.thumbnail ||
-      item.packageImage ||
-      "https://picsum.photos/seed/fallback-product/900/600",
+  image:
+  item.image ||
+  item.jacket ||
+  item.thumbnail ||
+  item.packageImage ||
+  "",
     description:
       item.description ||
       item.comment ||
