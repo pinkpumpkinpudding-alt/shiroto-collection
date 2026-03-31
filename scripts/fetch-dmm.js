@@ -121,24 +121,29 @@ async function fetchProducts() {
   endpoint.searchParams.set("sort", SORT);
   endpoint.searchParams.set("output", "json");
 
-const response = await fetch(endpoint.toString(), {
-  headers: {
-    "User-Agent": "shiroto-collection-bot/3.0",
-    "Accept-Language": "ja-JP,ja;q=0.9,en-US;q=0.8,en;q=0.7"
+  const response = await fetch(endpoint.toString(), {
+    headers: {
+      "User-Agent": "shiroto-collection-bot/3.0",
+      "Accept-Language": "ja-JP,ja;q=0.9,en-US;q=0.8,en;q=0.7"
+    }
+  });
+
+  const rawText = await response.text();
+
+  console.log("Response status:", response.status);
+  console.log("Response ok:", response.ok);
+  console.log("Raw response preview:", rawText.slice(0, 1500));
+
+  if (!response.ok) {
+    throw new Error(`API取得失敗: HTTP ${response.status} / ${rawText.slice(0, 500)}`);
   }
-});
 
-const rawText = await response.text();
+  const data = JSON.parse(rawText);
+  const items = data?.result?.items;
 
-console.log("Response status:", response.status);
-console.log("Response ok:", response.ok);
-console.log("Raw response preview:", rawText.slice(0, 1500));
-
-if (!response.ok) {
-  throw new Error(`API取得失敗: HTTP ${response.status} / ${rawText.slice(0, 500)}`);
-}
-
-const data = JSON.parse(rawText);
+  if (!Array.isArray(items) || !items.length) {
+    throw new Error("APIから商品が取得できませんでした。");
+  }
 
   const filteredItems = items
     .filter(isConceptMatch)
@@ -187,7 +192,6 @@ const data = JSON.parse(rawText);
   console.log(`products.json を更新しました: ${normalized.length}件`);
   console.log("=== DMM fetch success ===");
 }
-
 fetchProducts().catch((error) => {
   console.error("=== DMM fetch error ===");
   console.error(error);
